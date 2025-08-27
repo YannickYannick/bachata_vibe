@@ -106,3 +106,7 @@ class ArtistProfileViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Vues incrémentées'})
 
 
+
+
+
+

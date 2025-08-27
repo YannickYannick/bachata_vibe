@@ -13,7 +13,7 @@ from pathlib import Path
 # Configuration
 PROJECT_ROOT = Path(__file__).parent
 BACKUP_DIR = PROJECT_ROOT / "backups"
-DJANGO_SETTINGS = "bachata_site.settings.production"
+DJANGO_SETTINGS = "bachata_site.settings_test"  # Utilise SQLite pour les tests
 
 def run_command(command, check=True):
     """Exécute une commande et gère les erreurs"""

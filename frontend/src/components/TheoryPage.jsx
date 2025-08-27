@@ -239,3 +239,7 @@ const TheoryPage = () => {
 export default TheoryPage;
 
 
+
+
+
+

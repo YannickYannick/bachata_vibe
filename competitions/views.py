@@ -103,3 +103,7 @@ class CompetitionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+
+
+
+

@@ -174,3 +174,7 @@ class FestivalEnrollmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+
+
+
+

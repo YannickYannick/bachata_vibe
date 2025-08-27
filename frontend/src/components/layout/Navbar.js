@@ -13,7 +13,9 @@ import {
   Heart,
   BookOpen,
   Home,
-  Music
+  Music,
+  Search,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -32,7 +34,6 @@ const Navbar = () => {
     { name: 'Care', href: '/care', icon: Heart },
     { name: 'Compétitions', href: '/competitions', icon: Trophy },
     { name: 'Artistes', href: '/artists', icon: User },
-    { name: 'Pratiquants', href: '/practitioners', icon: Users },
     { name: 'Théorie', href: '/theory', icon: BookOpen },
   ];
 
@@ -54,32 +55,36 @@ const Navbar = () => {
   }, [location.pathname]);
 
   return (
-    <nav className="bg-white shadow-soft sticky top-0 z-50 backdrop-blur-md bg-white/90">
+    <nav className="bg-white/95 backdrop-blur-md shadow-lg sticky top-0 z-50 border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg flex items-center justify-center">
-                <Music className="w-6 h-6 text-white" />
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl">B</span>
               </div>
-              <span className="text-xl font-bold text-gradient">BachataSite</span>
+              <span className="text-xl font-bold text-gray-900">BachataSite</span>
             </Link>
           </div>
 
           {/* Navigation desktop */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+          <div className="hidden lg:block">
+            <div className="ml-10 flex items-baseline space-x-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`nav-link ${isActive(item.href) ? 'nav-link-active' : ''}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 ${
+                      isActive(item.href)
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                    }`}
                   >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {item.name}
+                    <Icon className="w-4 h-4" />
+                    <span>{item.name}</span>
                   </Link>
                 );
               })}
@@ -88,16 +93,26 @@ const Navbar = () => {
 
           {/* Boutons de droite */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Bouton recherche */}
+            <button className="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <Search className="w-5 h-5" />
+            </button>
+            
+            {/* Bouton notifications */}
+            <button className="p-2 text-gray-600 hover:text-purple-600 hover:bg-gray-100 rounded-lg transition-colors duration-200">
+              <Bell className="w-5 h-5" />
+            </button>
+
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors duration-200"
+                  className="flex items-center space-x-3 text-gray-700 hover:text-purple-600 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-100"
                 >
-                  <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium">{user.first_name || user.username}</span>
+                  <span className="text-sm font-medium text-gray-900">{user.first_name || user.username}</span>
                 </button>
 
                 <AnimatePresence>
@@ -107,7 +122,7 @@ const Navbar = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.95 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-large border border-gray-100 py-2 z-50"
+                      className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50"
                     >
                       <Link
                         to="/profile"
@@ -118,14 +133,14 @@ const Navbar = () => {
                         Mon Profil
                       </Link>
                       <Link
-                        to="/profile"
+                        to="/settings"
                         className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <Settings className="w-4 h-4 mr-3" />
                         Paramètres
                       </Link>
-                      <hr className="my-2" />
+                      <hr className="my-2 border-gray-200" />
                       <button
                         onClick={handleLogout}
                         className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
@@ -141,13 +156,13 @@ const Navbar = () => {
               <div className="flex items-center space-x-3">
                 <Link
                   to="/login"
-                  className="btn-ghost"
+                  className="px-4 py-2 text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium"
                 >
                   Connexion
                 </Link>
                 <Link
                   to="/register"
-                  className="btn-primary"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium"
                 >
                   Inscription
                 </Link>
@@ -156,10 +171,10 @@ const Navbar = () => {
           </div>
 
           {/* Bouton menu mobile */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="text-gray-700 hover:text-primary-600 transition-colors duration-200"
+              className="text-gray-700 hover:text-purple-600 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-100"
             >
               {isOpen ? (
                 <X className="w-6 h-6" />
@@ -179,19 +194,19 @@ const Navbar = () => {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-white border-t border-gray-100"
+            className="lg:hidden bg-white border-t border-gray-200"
           >
-            <div className="px-2 pt-2 pb-3 space-y-1">
+            <div className="px-4 pt-4 pb-6 space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
-                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
+                    className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors duration-200 ${
                       isActive(item.href)
-                        ? 'text-primary-600 bg-primary-50'
-                        : 'text-gray-600 hover:text-primary-600 hover:bg-gray-50'
+                        ? 'text-purple-700 bg-purple-50'
+                        : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
                     }`}
                   >
                     <Icon className="w-5 h-5 mr-3" />
@@ -200,36 +215,36 @@ const Navbar = () => {
                 );
               })}
               
-              <hr className="my-2" />
+              <hr className="my-4 border-gray-200" />
               
               {user ? (
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Link
                     to="/profile"
-                    className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 hover:bg-gray-50 transition-colors duration-200"
+                    className="flex items-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-purple-600 hover:bg-gray-50 transition-colors duration-200"
                   >
                     <User className="w-5 h-5 mr-3" />
                     Mon Profil
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
+                    className="flex items-center w-full px-4 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
                   >
                     <LogOut className="w-5 h-5 mr-3" />
                     Déconnexion
                   </button>
                 </div>
               ) : (
-                <div className="space-y-2 pt-2">
+                <div className="space-y-3 pt-4">
                   <Link
                     to="/login"
-                    className="flex items-center justify-center px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-primary-600 transition-colors duration-200"
+                    className="flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-purple-600 transition-colors duration-200"
                   >
                     Connexion
                   </Link>
                   <Link
                     to="/register"
-                    className="flex items-center justify-center px-3 py-2 rounded-md text-base font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors duration-200"
+                    className="flex items-center justify-center px-4 py-3 rounded-lg text-base font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200"
                   >
                     Inscription
                   </Link>
@@ -244,6 +259,10 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+
 
 
 

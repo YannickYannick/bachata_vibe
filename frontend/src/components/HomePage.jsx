@@ -8,9 +8,12 @@ import {
   ArrowRight, 
   Play,
   Heart,
-  Share2
+  Share2,
+  Clock
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getAllVideoSources } from '../config/videos';
+import VideoBackground from './VideoBackground';
 
 const HomePage = () => {
   const [featuredCourses, setFeaturedCourses] = useState([]);
@@ -36,7 +39,9 @@ const HomePage = () => {
         image: "https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=400",
         rating: 4.8,
         participants: 18,
-        maxParticipants: 25
+        maxParticipants: 25,
+        duration: "2h",
+        students: 18
       },
       {
         id: 2,
@@ -48,7 +53,9 @@ const HomePage = () => {
         image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400",
         rating: 4.9,
         participants: 22,
-        maxParticipants: 30
+        maxParticipants: 30,
+        duration: "1h30",
+        students: 22
       },
       {
         id: 3,
@@ -60,7 +67,9 @@ const HomePage = () => {
         image: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=400",
         rating: 4.7,
         participants: 15,
-        maxParticipants: 20
+        maxParticipants: 20,
+        duration: "2h30",
+        students: 15
       }
     ]);
 
@@ -100,150 +109,165 @@ const HomePage = () => {
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
-      y: 0,
       opacity: 1,
+      y: 0,
       transition: {
-        duration: 0.6,
-        ease: "easeOut"
+        duration: 0.5
       }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/90 to-pink-600/90"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
+      {/* Hero Section avec Video Background */}
+      <section className="relative h-screen flex items-center justify-center overflow-hidden">
+        {/* Video Background - Positionné en arrière-plan */}
+        <div className="absolute inset-0 w-full h-full">
+          <VideoBackground 
+            videoKey="parisDrone"
+            overlay={true}
+            overlayOpacity={5}
+            noOverlay={false}
+            debug={true}
+          />
+        </div>
+        
+        {/* Contenu principal centré */}
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
           <motion.div
-            className="text-center text-white"
             variants={containerVariants}
             initial="hidden"
             animate="visible"
           >
             <motion.h1 
-              className="text-5xl lg:text-7xl font-bold mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
               variants={itemVariants}
             >
-              Découvrez la
-              <span className="block text-yellow-300">Bachata</span>
+              Bachata & Cocktails
             </motion.h1>
+            
             <motion.p 
-              className="text-xl lg:text-2xl mb-8 max-w-3xl mx-auto text-purple-100"
+              className="text-lg sm:text-xl md:text-2xl mb-8 text-purple-100 max-w-2xl mx-auto leading-relaxed"
               variants={itemVariants}
             >
-              Rejoignez la communauté de danseurs passionnés. Apprenez, pratiquez et partagez votre passion pour la bachata.
+              Découvrez l'art de la danse et l'élégance des cocktails
             </motion.p>
+            
             <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
               variants={itemVariants}
             >
               <Link
-                to="/courses"
-                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-colors duration-300 flex items-center justify-center gap-2"
+                to="/register"
+                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
-                Trouver un cours
-                <ArrowRight className="w-5 h-5" />
+                Commencer
               </Link>
               <Link
-                to="/festivals"
-                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-colors duration-300 flex items-center justify-center gap-2"
+                to="/courses"
+                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105"
               >
-                <Play className="w-5 h-5" />
-                Découvrir les festivals
+                Explorer les cours
               </Link>
             </motion.div>
           </motion.div>
         </div>
-        
-        {/* Wave decoration */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-auto">
-            <path
-              d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-              opacity=".25"
-              className="fill-white"
-            />
-            <path
-              d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19.3,81.78-28.2,126.67-39.49C465.83,1.27,521.69,0,583,0c69.27,0,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
-              opacity=".5"
-              className="fill-white"
-            />
-            <path
-              d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
-              className="fill-white"
-            />
-          </svg>
-        </div>
+
+        {/* Indicateur de défilement */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white rounded-full mt-2"></div>
+          </div>
+        </motion.div>
       </section>
 
-      {/* Stats Section */}
+      {/* Section Statistiques */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="grid grid-cols-2 lg:grid-cols-4 gap-8"
+          <motion.div
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
           >
-            {[
-              { label: "Cours disponibles", value: stats.totalCourses, icon: Calendar },
-              { label: "Participants actifs", value: stats.totalParticipants, icon: Users },
-              { label: "Artistes certifiés", value: stats.totalArtists, icon: Star },
-              { label: "Villes couvertes", value: stats.totalCities, icon: MapPin }
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                className="text-center"
-                variants={itemVariants}
-              >
-                <div className="bg-gradient-to-br from-purple-100 to-pink-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <stat.icon className="w-10 h-10 text-purple-600" />
-                </div>
-                <div className="text-3xl font-bold text-gray-900 mb-2">
-                  {stat.value.toLocaleString()}
-                </div>
-                <div className="text-gray-600">{stat.label}</div>
-              </motion.div>
-            ))}
+            <motion.div 
+              className="text-center"
+              variants={itemVariants}
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalCourses}</div>
+              <div className="text-gray-600">Cours disponibles</div>
+            </motion.div>
+            
+            <motion.div 
+              className="text-center"
+              variants={itemVariants}
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalParticipants}</div>
+              <div className="text-gray-600">Participants</div>
+            </motion.div>
+            
+            <motion.div 
+              className="text-center"
+              variants={itemVariants}
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalArtists}</div>
+              <div className="text-gray-600">Artistes</div>
+            </motion.div>
+            
+            <motion.div 
+              className="text-center"
+              variants={itemVariants}
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalCities}</div>
+              <div className="text-gray-600">Villes</div>
+            </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* Featured Courses Section */}
-      <section className="py-16 bg-gradient-to-br from-purple-50 to-pink-50">
+      {/* Section Cours en Vedette */}
+      <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="text-center mb-12"
-            variants={itemVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Cours populaires
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Découvrez nos cours les plus demandés et commencez votre apprentissage dès aujourd'hui
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <motion.h2 
+              className="text-4xl font-bold text-gray-900 mb-4"
+              variants={itemVariants}
+            >
+              Cours en Vedette
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-gray-600"
+              variants={itemVariants}
+            >
+              Découvrez nos cours les plus populaires
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
           >
             {featuredCourses.map((course) => (
               <motion.div
                 key={course.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
                 variants={itemVariants}
-                whileHover={{ y: -5 }}
               >
                 <div className="relative">
                   <img
@@ -282,114 +306,86 @@ const HomePage = () => {
                       {course.location}
                     </div>
                     <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {new Date(course.date).toLocaleDateString('fr-FR')}
+                      <Clock className="w-4 h-4" />
+                      {course.duration}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm text-gray-600">
-                      {course.participants}/{course.maxParticipants} participants
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      <span>{course.students} étudiants</span>
                     </div>
-                    <div className="w-24 bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-purple-600 h-2 rounded-full"
-                        style={{ width: `${(course.participants / course.maxParticipants) * 100}%` }}
-                      ></div>
-                    </div>
+                    <button className="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition-colors">
+                      S'inscrire
+                    </button>
                   </div>
-                  
-                  <Link
-                    to={`/courses/${course.id}`}
-                    className="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-300 flex items-center justify-center gap-2"
-                  >
-                    Voir le cours
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
                 </div>
               </motion.div>
             ))}
           </motion.div>
-          
-          <motion.div
-            className="text-center mt-12"
-            variants={itemVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <Link
-              to="/courses"
-              className="inline-flex items-center gap-2 text-purple-600 font-semibold text-lg hover:text-purple-700 transition-colors"
-            >
-              Voir tous les cours
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </motion.div>
         </div>
       </section>
 
-      {/* Upcoming Events Section */}
+      {/* Section Événements à Venir */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            className="text-center mb-12"
-            variants={itemVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Événements à venir
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Ne manquez pas les festivals et compétitions de bachata les plus attendus
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <motion.h2 
+              className="text-4xl font-bold text-gray-900 mb-4"
+              variants={itemVariants}
+            >
+              Événements à Venir
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-gray-600"
+              variants={itemVariants}
+            >
+              Ne manquez pas nos prochains événements
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
             {upcomingEvents.map((event) => (
               <motion.div
                 key={event.id}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl overflow-hidden text-white"
+                className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2"
                 variants={itemVariants}
-                whileHover={{ y: -5 }}
               >
-                <div className="p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-2">{event.title}</h3>
-                      <div className="flex items-center gap-4 text-purple-100">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(event.date).toLocaleDateString('fr-FR')}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MapPin className="w-4 h-4" />
-                          {event.location}
-                        </div>
-                      </div>
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {event.title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-gray-600 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {event.date}
                     </div>
-                    <img
-                      src={event.image}
-                      alt={event.title}
-                      className="w-20 h-20 rounded-lg object-cover"
-                    />
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {event.location}
+                    </div>
                   </div>
-                  
-                  <Link
-                    to={`/events/${event.id}`}
-                    className="inline-flex items-center gap-2 bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-                  >
-                    En savoir plus
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <button className="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition-colors">
+                    Plus d'infos
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -397,7 +393,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Section Call to Action */}
       <section className="py-16 bg-gradient-to-r from-purple-600 to-pink-600">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <motion.div
@@ -424,13 +420,13 @@ const HomePage = () => {
             >
               <Link
                 to="/register"
-                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-colors duration-300"
+                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
                 Créer un compte
               </Link>
               <Link
                 to="/courses"
-                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-colors duration-300"
+                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105"
               >
                 Explorer les cours
               </Link>
@@ -443,7 +439,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
-
-
-
 

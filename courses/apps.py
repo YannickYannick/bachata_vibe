@@ -8,3 +8,7 @@ class CoursesConfig(AppConfig):
 
 
 
+
+
+
+

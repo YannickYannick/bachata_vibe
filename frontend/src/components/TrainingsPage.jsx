@@ -207,3 +207,7 @@ const TrainingsPage = () => {
 export default TrainingsPage;
 
 
+
+
+
+

@@ -97,3 +97,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+
+
+
+

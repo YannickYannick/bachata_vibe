@@ -2,10 +2,11 @@
 URL configuration for bachata_site project.
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
+from django.views.static import serve as serve_static
 
 urlpatterns = [
     # Interface d'administration Django
@@ -38,6 +39,11 @@ urlpatterns = [
     # Redirection de la racine vers le frontend
     path('', RedirectView.as_view(url='/frontend/', permanent=False)),
     
+    # Servir les vidéos du build React (ex: /videos/paris-drone.mp4)
+    re_path(r'^videos/(?P<path>.*)$', serve_static, {
+        'document_root': settings.BASE_DIR / 'frontend' / 'build' / 'videos'
+    }),
+
     # URLs du frontend React (gérées par React Router)
     path('frontend/', include('frontend.urls')),
 ]

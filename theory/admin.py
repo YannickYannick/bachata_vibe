@@ -65,3 +65,7 @@ class ArticleAdmin(admin.ModelAdmin):
     unmark_as_featured.short_description = 'Retirer de la mise en avant'
 
 
+
+
+
+
