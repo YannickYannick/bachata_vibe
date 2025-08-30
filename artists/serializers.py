@@ -61,3 +61,4 @@ class ArtistProfileListSerializer(serializers.ModelSerializer):
 
 
 
+

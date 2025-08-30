@@ -12,3 +12,4 @@ class FestivalsConfig(AppConfig):
 
 
 
+

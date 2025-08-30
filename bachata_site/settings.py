@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'accounts',
     'courses',
     'festivals',
+    'events',
     'trainings',
     'care',
     'competitions',

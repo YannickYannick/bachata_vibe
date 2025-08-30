@@ -114,6 +114,7 @@ class Festival(models.Model):
     # Métadonnées
     tags = models.JSONField(default=list, blank=True, verbose_name=_('Tags'))
     website_url = models.URLField(blank=True, verbose_name=_('Site web'))
+    instagram = models.CharField(max_length=100, blank=True, verbose_name=_('Compte Instagram'))
     social_media = models.JSONField(default=dict, blank=True, verbose_name=_('Réseaux sociaux'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Créé le'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Modifié le'))

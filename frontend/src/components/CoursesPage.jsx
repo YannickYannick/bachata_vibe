@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCourses();
@@ -29,6 +31,10 @@ const CoursesPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewDetails = (courseId) => {
+    navigate(`/courses/${courseId}`);
   };
 
   const formatDate = (dateString) => {
@@ -190,7 +196,10 @@ const CoursesPage = () => {
                   <div className="text-2xl font-bold text-blue-600">
                     {formatPrice(course.price, course.currency, course.is_free)}
                   </div>
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => handleViewDetails(course.id)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                  >
                     Voir détails
                   </button>
                 </div>
@@ -223,6 +232,7 @@ const CoursesPage = () => {
 };
 
 export default CoursesPage;
+
 
 
 

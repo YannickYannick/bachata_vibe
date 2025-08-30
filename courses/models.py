@@ -124,6 +124,10 @@ class Course(models.Model):
     )
     gallery = models.JSONField(default=list, blank=True, verbose_name=_('Galerie d\'images'))
     
+    # Liens et réseaux sociaux
+    website = models.URLField(blank=True, verbose_name=_('Site web'))
+    instagram = models.CharField(max_length=100, blank=True, verbose_name=_('Compte Instagram'))
+    
     # Métadonnées
     tags = models.JSONField(default=list, blank=True, verbose_name=_('Tags'))
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Créé le'))

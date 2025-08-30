@@ -74,6 +74,75 @@ npm install
 npm start
 ```
 
+## ▶️ Démarrer le site : mode "start" vs mode "build"
+
+Cette application peut être lancée de deux façons complémentaires.
+
+### A) Mode développement – `npm start`
+
+- Objectif: développer vite avec rechargement automatique.
+- Ce qui se passe:
+  - Le frontend React tourne sur `http://localhost:3000` (serveur de dev).
+  - Le backend Django tourne sur `http://127.0.0.1:8000`.
+  - Les requêtes API sont proxifiées depuis le frontend vers Django (voir `frontend/package.json`).
+  - Les fichiers sont servis depuis la mémoire; pas d'optimisation ni de minification.
+
+Commandes:
+```powershell
+# Terminal 1 – Backend
+python manage.py runserver
+
+# Terminal 2 – Frontend
+cd frontend
+npm start
+```
+
+Accès:
+- Frontend: `http://localhost:3000`
+- API/Back: `http://127.0.0.1:8000`
+
+Où placer vos fichiers pendant le dev:
+- Images/vidéos statiques: `frontend/public/...` (ex: `frontend/public/videos/paris-drone.mp4` → accessible via `/videos/paris-drone.mp4`).
+
+### B) Mode production local – `npm run build`
+
+- Objectif: générer une version optimisée servie par Django (sans `npm start`).
+- Ce qui se passe:
+  - `npm run build` crée un dossier `frontend/build` optimisé (hash, minification).
+  - Django sert l'`index.html` du build et les statiques compilés.
+  - Les vidéos sont servies par Django via l'URL `/videos/...`.
+
+Commandes (Windows PowerShell):
+```powershell
+# 1) Construire le frontend
+cd frontend
+npm run build
+cd ..
+
+# 2) Collecter les statiques (si nécessaire)
+python manage.py collectstatic --noinput --settings=bachata_site.settings_test
+
+# 3) Lancer Django (qui sert le build)
+python manage.py runserver --settings=bachata_site.settings_test
+```
+
+Accès:
+- Site complet (build): `http://127.0.0.1:8000/`
+
+Astuce (sans changer de dossier):
+```powershell
+npm --prefix frontend run build
+```
+
+Où placer vos fichiers en build:
+- Les vidéos destinées à la prod locale sont en `frontend/build/videos/...` (elles sont servies via `/videos/...`).
+
+### Erreurs courantes et solutions
+
+- PowerShell n'accepte pas `&&` entre 2 commandes → exécutez-les sur 2 lignes distinctes.
+- `The directory '.../frontend/build/static' in STATICFILES_DIRS does not exist` → refaites `npm run build`.
+- Vidéo 404 en prod locale → assurez-vous que l'URL `http://127.0.0.1:8000/videos/<nom>.mp4` fonctionne; le fichier doit exister dans `frontend/build/videos/` et la route `/videos/` est configurée dans `bachata_site/urls.py`.
+
 ## 🌐 Accès
 
 - **Backend** : http://127.0.0.1:8000/

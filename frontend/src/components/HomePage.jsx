@@ -9,94 +9,68 @@ import {
   Play,
   Heart,
   Share2,
-  Clock
+  Clock,
+  User
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getAllVideoSources } from '../config/videos';
 import VideoBackground from './VideoBackground';
+import { getStats, getFeaturedCourses } from '../services/api';
+import ApiService from '../services/api';
 
 const HomePage = () => {
-  const [featuredCourses, setFeaturedCourses] = useState([]);
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [stats, setStats] = useState({
-    totalCourses: 0,
-    totalParticipants: 0,
-    totalArtists: 0,
-    totalCities: 0
+    courses_count: 0,
+    total_participants: 0,
+    artists_count: 0,
+    cities_count: 0
   });
+  const [featuredCourses, setFeaturedCourses] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState({ courses: [], festivals: [] });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simuler le chargement des données
-    // En production, cela viendrait de l'API Django
-    setFeaturedCourses([
-      {
-        id: 1,
-        title: "Bachata Sensual - Niveau Intermédiaire",
-        instructor: "Maria Rodriguez",
-        location: "Paris, France",
-        date: "2024-02-15",
-        price: 45,
-        image: "https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=400",
-        rating: 4.8,
-        participants: 18,
-        maxParticipants: 25,
-        duration: "2h",
-        students: 18
-      },
-      {
-        id: 2,
-        title: "Bachata Dominicana - Débutants",
-        instructor: "Carlos Mendez",
-        location: "Lyon, France",
-        date: "2024-02-20",
-        price: 35,
-        image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400",
-        rating: 4.9,
-        participants: 22,
-        maxParticipants: 30,
-        duration: "1h30",
-        students: 22
-      },
-      {
-        id: 3,
-        title: "Bachata Moderna - Avancé",
-        instructor: "Ana Silva",
-        location: "Marseille, France",
-        date: "2024-02-25",
-        price: 55,
-        image: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=400",
-        rating: 4.7,
-        participants: 15,
-        maxParticipants: 20,
-        duration: "2h30",
-        students: 15
+    const loadHomePageData = async () => {
+      try {
+        setLoading(true);
+        
+        // Charger les données en parallèle
+        const [statsData, featuredData, upcomingEventsData, upcomingFestivalsData] = await Promise.all([
+          getStats(),
+          getFeaturedCourses(),
+          ApiService.getUpcomingEvents(),
+          ApiService.getUpcomingEvents() // Pour les festivals, on peut adapter plus tard
+        ]);
+        
+        setStats(statsData);
+        setFeaturedCourses(featuredData);
+        setUpcomingEvents({
+          courses: upcomingEventsData.filter(event => event.category?.slug === 'workshops' || event.category?.slug === 'masterclasses'),
+          festivals: upcomingEventsData.filter(event => event.category?.slug === 'soirees' || event.category?.slug === 'spectacles')
+        });
+      } catch (error) {
+        console.error('Erreur lors du chargement des données de la page d\'accueil:', error);
+      } finally {
+        setLoading(false);
       }
-    ]);
+    };
 
-    setUpcomingEvents([
-      {
-        id: 1,
-        title: "Festival Bachata Paris 2024",
-        date: "2024-03-15",
-        location: "Paris, France",
-        image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400"
-      },
-      {
-        id: 2,
-        title: "Compétition Nationale Bachata",
-        date: "2024-04-20",
-        location: "Lyon, France",
-        image: "https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?w=400"
-      }
-    ]);
-
-    setStats({
-      totalCourses: 156,
-      totalParticipants: 2847,
-      totalArtists: 89,
-      totalCities: 23
-    });
+    loadHomePageData();
   }, []);
+
+  const formatNumber = (num) => {
+    return num.toLocaleString('fr-FR');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement de la page d'accueil...</p>
+        </div>
+      </div>
+    );
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -129,287 +103,27 @@ const HomePage = () => {
             videoKey="parisDrone"
             overlay={true}
             overlayOpacity={5}
-            noOverlay={false}
-            debug={true}
+            debug={false}
           />
         </div>
         
         {/* Contenu principal centré */}
-        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
+        <div className="relative z-10 text-center text-white px-4 sm:px-6 lg:px-8">
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
+            className="max-w-4xl mx-auto"
           >
             <motion.h1 
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
+              className="text-5xl md:text-7xl font-bold mb-6"
               variants={itemVariants}
             >
-              Bachata & Cocktails
+              Bachata
+              <span className="block text-yellow-400">Passion</span>
             </motion.h1>
-            
             <motion.p 
-              className="text-lg sm:text-xl md:text-2xl mb-8 text-purple-100 max-w-2xl mx-auto leading-relaxed"
-              variants={itemVariants}
-            >
-              Découvrez l'art de la danse et l'élégance des cocktails
-            </motion.p>
-            
-            <motion.div 
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-              variants={itemVariants}
-            >
-              <Link
-                to="/register"
-                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
-                Commencer
-              </Link>
-              <Link
-                to="/courses"
-                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105"
-              >
-                Explorer les cours
-              </Link>
-            </motion.div>
-          </motion.div>
-        </div>
-
-        {/* Indicateur de défilement */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-white"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="w-6 h-10 border-2 border-white rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white rounded-full mt-2"></div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Section Statistiques */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-          >
-            <motion.div 
-              className="text-center"
-              variants={itemVariants}
-            >
-              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalCourses}</div>
-              <div className="text-gray-600">Cours disponibles</div>
-            </motion.div>
-            
-            <motion.div 
-              className="text-center"
-              variants={itemVariants}
-            >
-              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalParticipants}</div>
-              <div className="text-gray-600">Participants</div>
-            </motion.div>
-            
-            <motion.div 
-              className="text-center"
-              variants={itemVariants}
-            >
-              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalArtists}</div>
-              <div className="text-gray-600">Artistes</div>
-            </motion.div>
-            
-            <motion.div 
-              className="text-center"
-              variants={itemVariants}
-            >
-              <div className="text-4xl font-bold text-purple-600 mb-2">{stats.totalCities}</div>
-              <div className="text-gray-600">Villes</div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Section Cours en Vedette */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <motion.h2 
-              className="text-4xl font-bold text-gray-900 mb-4"
-              variants={itemVariants}
-            >
-              Cours en Vedette
-            </motion.h2>
-            <motion.p 
-              className="text-xl text-gray-600"
-              variants={itemVariants}
-            >
-              Découvrez nos cours les plus populaires
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {featuredCourses.map((course) => (
-              <motion.div
-                key={course.id}
-                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-                variants={itemVariants}
-              >
-                <div className="relative">
-                  <img
-                    src={course.image}
-                    alt={course.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-4 right-4 flex gap-2">
-                    <button className="bg-white/90 p-2 rounded-full hover:bg-white transition-colors">
-                      <Heart className="w-4 h-4 text-gray-600" />
-                    </button>
-                    <button className="bg-white/90 p-2 rounded-full hover:bg-white transition-colors">
-                      <Share2 className="w-4 h-4 text-gray-600" />
-                    </button>
-                  </div>
-                  <div className="absolute bottom-4 left-4 bg-yellow-400 text-purple-900 px-3 py-1 rounded-full text-sm font-semibold">
-                    {course.price}€
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                    <span className="text-sm text-gray-600">{course.rating}</span>
-                  </div>
-                  
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {course.title}
-                  </h3>
-                  
-                  <p className="text-gray-600 mb-4">{course.instructor}</p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {course.location}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {course.duration}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>{course.students} étudiants</span>
-                    </div>
-                    <button className="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition-colors">
-                      S'inscrire
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Section Événements à Venir */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <motion.h2 
-              className="text-4xl font-bold text-gray-900 mb-4"
-              variants={itemVariants}
-            >
-              Événements à Venir
-            </motion.h2>
-            <motion.p 
-              className="text-xl text-gray-600"
-              variants={itemVariants}
-            >
-              Ne manquez pas nos prochains événements
-            </motion.p>
-          </motion.div>
-
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-8"
-          >
-            {upcomingEvents.map((event) => (
-              <motion.div
-                key={event.id}
-                className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2"
-                variants={itemVariants}
-              >
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-48 object-cover"
-                />
-                <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {event.title}
-                  </h3>
-                  <div className="flex items-center gap-4 text-gray-600 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      {event.date}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {event.location}
-                    </div>
-                  </div>
-                  <button className="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition-colors">
-                    Plus d'infos
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Section Call to Action */}
-      <section className="py-16 bg-gradient-to-r from-purple-600 to-pink-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <motion.h2 
-              className="text-4xl font-bold text-white mb-6"
-              variants={itemVariants}
-            >
-              Prêt à danser ?
-            </motion.h2>
-            <motion.p 
-              className="text-xl text-purple-100 mb-8"
+              className="text-xl md:text-2xl text-purple-100 mb-8"
               variants={itemVariants}
             >
               Rejoignez notre communauté de passionnés et commencez votre voyage dans le monde de la bachata
@@ -433,10 +147,337 @@ const HomePage = () => {
             </motion.div>
           </motion.div>
         </div>
+        
+        {/* Indicateur de défilement */}
+        <motion.div 
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <ArrowRight className="w-6 h-6 text-white rotate-90" />
+        </motion.div>
+      </section>
+
+      {/* Section Statistiques */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.h2 
+              className="text-4xl font-bold text-gray-900 mb-4"
+              variants={itemVariants}
+            >
+              Notre Communauté en Chiffres
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-gray-600"
+              variants={itemVariants}
+            >
+              Découvrez l'ampleur de notre réseau de passionnés
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+          >
+            <motion.div
+              variants={itemVariants}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{formatNumber(stats.courses_count)}</div>
+              <div className="text-gray-600">Cours disponibles</div>
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{formatNumber(stats.total_participants)}</div>
+              <div className="text-gray-600">Participants</div>
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{formatNumber(stats.artists_count)}</div>
+              <div className="text-gray-600">Artistes</div>
+            </motion.div>
+            <motion.div
+              variants={itemVariants}
+              className="text-center"
+            >
+              <div className="text-4xl font-bold text-purple-600 mb-2">{formatNumber(stats.cities_count)}</div>
+              <div className="text-gray-600">Villes</div>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Cours en Vedette */}
+      <section className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.h2 
+              className="text-4xl font-bold text-gray-900 mb-4"
+              variants={itemVariants}
+            >
+              Cours en Vedette
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-gray-600"
+              variants={itemVariants}
+            >
+              Découvrez nos cours les plus populaires et les événements à venir
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            {featuredCourses.map((course) => (
+              <motion.div
+                key={course.id}
+                className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
+                variants={itemVariants}
+              >
+                <div className="h-48 bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                  {course.main_image ? (
+                    <img
+                      src={course.main_image}
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-white text-center">
+                      <div className="text-4xl mb-2">💃</div>
+                      <p className="text-lg opacity-90">Bachata</p>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">
+                    {course.title}
+                  </h3>
+                  
+                  <div className="flex items-center gap-4 text-gray-600 mb-4">
+                    <div className="flex items-center gap-1">
+                      <User className="w-4 h-4" />
+                      <span>{course.instructor?.get_full_name || course.instructor?.username || 'Instructeur'}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>{course.city}, {course.country}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {course.is_free ? 'Gratuit' : `${course.base_price} ${course.currency || '€'}`}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {course.current_participants}/{course.max_participants} participants
+                    </div>
+                  </div>
+                  
+                  <Link
+                    to={`/courses/${course.id}`}
+                    className="block w-full bg-purple-600 text-white text-center py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                  >
+                    Voir détails
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Section Événements à Venir */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.h2 
+              className="text-4xl font-bold text-gray-900 mb-4"
+              variants={itemVariants}
+            >
+              Événements à Venir
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-gray-600"
+              variants={itemVariants}
+            >
+              Ne manquez pas nos prochains événements et festivals
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-8"
+          >
+            {/* Cours à venir */}
+            {upcomingEvents.courses.map((course) => (
+              <motion.div
+                key={`course-${course.id}`}
+                className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2"
+                variants={itemVariants}
+              >
+                <div className="h-48 bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                  {course.main_image ? (
+                    <img
+                      src={course.main_image}
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-white text-center">
+                      <div className="text-4xl mb-2">💃</div>
+                      <p className="text-lg opacity-90">Cours</p>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {course.title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-gray-600 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(course.start_date).toLocaleDateString('fr-FR')}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {course.city}, {course.country}
+                    </div>
+                  </div>
+                  <Link
+                    to={`/courses/${course.id}`}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-full hover:bg-blue-700 transition-colors"
+                  >
+                    Plus d'infos
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+            
+            {/* Festivals à venir */}
+            {upcomingEvents.festivals.map((festival) => (
+              <motion.div
+                key={`festival-${festival.id}`}
+                className="bg-gray-50 rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:-translate-y-2"
+                variants={itemVariants}
+              >
+                <div className="h-48 bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center">
+                  {festival.main_image ? (
+                    <img
+                      src={festival.main_image}
+                      alt={festival.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-white text-center">
+                      <div className="text-4xl mb-2">🎭</div>
+                      <p className="text-lg opacity-90">Festival</p>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {festival.title}
+                  </h3>
+                  <div className="flex items-center gap-4 text-gray-600 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      {new Date(festival.start_date).toLocaleDateString('fr-FR')}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4" />
+                      {festival.city}, {festival.country}
+                    </div>
+                  </div>
+                  <Link
+                    to={`/festivals/${festival.id}`}
+                    className="bg-pink-600 text-white px-6 py-2 rounded-full hover:bg-pink-700 transition-colors"
+                  >
+                    Plus d'infos
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Section Call to Action */}
+      <section className="py-20 bg-gradient-to-r from-purple-600 to-pink-600">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.h2 
+              className="text-4xl font-bold text-white mb-6"
+              variants={itemVariants}
+            >
+              Prêt à Danser ?
+            </motion.h2>
+            <motion.p 
+              className="text-xl text-purple-100 mb-8"
+              variants={itemVariants}
+            >
+              Rejoignez notre communauté et commencez votre voyage dans le monde de la bachata dès aujourd'hui
+            </motion.p>
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center"
+              variants={itemVariants}
+            >
+              <Link
+                to="/register"
+                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                Commencer maintenant
+              </Link>
+              <Link
+                to="/courses"
+                className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105"
+              >
+                Découvrir les cours
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
     </div>
   );
 };
 
 export default HomePage;
-

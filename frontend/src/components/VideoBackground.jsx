@@ -142,9 +142,7 @@ const VideoBackground = ({
             left: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            border: '3px solid red', // Test pour voir si la vidéo est là
-            backgroundColor: 'black' // Fond noir pour voir la vidéo
+            objectFit: 'cover'
           }}
           key={`${videoKey}-${currentSourceIndex}`}
           onLoadStart={() => console.log('🔄 onLoadStart déclenché')}

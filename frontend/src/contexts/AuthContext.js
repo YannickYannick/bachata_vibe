@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axios from 'axios';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -14,28 +13,38 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('auth_token'));
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
 
-  // Configuration axios avec token
+  const API_BASE_URL = 'http://localhost:8000/api/accounts';
+
+  // Vérifier le token au chargement
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Token ${token}`;
-      fetchUser();
+      checkAuthStatus();
     } else {
       setLoading(false);
     }
   }, [token]);
 
-  const fetchUser = async () => {
+  const checkAuthStatus = async () => {
     try {
-      const response = await axios.get('/api/current-user/');
-      setUser(response.data);
+      const response = await fetch(`${API_BASE_URL}/current-user/`, {
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      } else {
+        // Token invalide
+        logout();
+      }
     } catch (error) {
-      console.error('Erreur lors de la récupération de l\'utilisateur:', error);
-      localStorage.removeItem('token');
-      setToken(null);
-      setUser(null);
+      console.error('Erreur lors de la vérification du token:', error);
+      logout();
     } finally {
       setLoading(false);
     }
@@ -43,101 +52,129 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await axios.post('/api/login/', {
-        username,
-        password,
+      const response = await fetch(`${API_BASE_URL}/login/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
       });
-      
-      const { token: newToken, user: userData } = response.data;
-      
-      localStorage.setItem('token', newToken);
-      setToken(newToken);
-      setUser(userData);
-      axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
-      
-      toast.success('Connexion réussie !');
-      return { success: true };
+
+      if (response.ok) {
+        const data = await response.json();
+        const { token: newToken, user: userData } = data;
+        
+        setToken(newToken);
+        setUser(userData);
+        localStorage.setItem('auth_token', newToken);
+        
+        toast.success('Connexion réussie !');
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        const errorMessage = errorData.error || 'Erreur de connexion';
+        toast.error(errorMessage);
+        return { success: false, error: errorMessage };
+      }
     } catch (error) {
-      const message = error.response?.data?.error || 'Erreur lors de la connexion';
-      toast.error(message);
-      return { success: false, error: message };
+      console.error('Erreur lors de la connexion:', error);
+      toast.error('Erreur de connexion');
+      return { success: false, error: 'Erreur de connexion' };
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/register/', userData);
-      
-      const { token: newToken, user: newUser } = response.data;
-      
-      localStorage.setItem('token', newToken);
-      setToken(newToken);
-      setUser(newUser);
-      axios.defaults.headers.common['Authorization'] = `Token ${newToken}`;
-      
-      toast.success('Compte créé avec succès !');
-      return { success: true };
+      const response = await fetch(`${API_BASE_URL}/register/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const { token: newToken, user: newUser } = data;
+        
+        setToken(newToken);
+        setUser(newUser);
+        localStorage.setItem('auth_token', newToken);
+        
+        toast.success('Compte créé avec succès !');
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        const errorMessage = errorData.error || 'Erreur lors de l\'inscription';
+        toast.error(errorMessage);
+        return { success: false, error: errorMessage };
+      }
     } catch (error) {
-      const message = error.response?.data?.error || 'Erreur lors de l\'inscription';
-      toast.error(message);
-      return { success: false, error: message };
+      console.error('Erreur lors de l\'inscription:', error);
+      toast.error('Erreur lors de l\'inscription');
+      return { success: false, error: 'Erreur lors de l\'inscription' };
     }
   };
 
   const logout = async () => {
     try {
       if (token) {
-        await axios.post('/api/logout/');
+        // Appeler l'API de déconnexion
+        await fetch(`${API_BASE_URL}/logout/`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${token}`,
+          },
+        });
       }
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     } finally {
-      localStorage.removeItem('token');
+      // Nettoyer le state local
       setToken(null);
       setUser(null);
-      delete axios.defaults.headers.common['Authorization'];
+      localStorage.removeItem('auth_token');
       toast.success('Déconnexion réussie');
     }
   };
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await axios.put('/api/profile/update/', profileData);
-      setUser(prevUser => ({ ...prevUser, ...response.data }));
-      toast.success('Profil mis à jour avec succès !');
-      return { success: true };
-    } catch (error) {
-      const message = error.response?.data?.error || 'Erreur lors de la mise à jour du profil';
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
+      const response = await fetch(`${API_BASE_URL}/profile/update/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Token ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(profileData),
+      });
 
-  const changePassword = async (passwordData) => {
-    try {
-      await axios.post('/api/password/change/', passwordData);
-      toast.success('Mot de passe modifié avec succès !');
-      return { success: true };
+      if (response.ok) {
+        const updatedProfile = await response.json();
+        setUser(prev => ({ ...prev, profile: updatedProfile }));
+        toast.success('Profil mis à jour !');
+        return { success: true };
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Erreur lors de la mise à jour');
+        return { success: false, error: errorData.error };
+      }
     } catch (error) {
-      const message = error.response?.data?.error || 'Erreur lors du changement de mot de passe';
-      toast.error(message);
-      return { success: false, error: message };
+      console.error('Erreur lors de la mise à jour du profil:', error);
+      toast.error('Erreur lors de la mise à jour du profil');
+      return { success: false, error: 'Erreur lors de la mise à jour du profil' };
     }
   };
 
   const value = {
     user,
-    loading,
     token,
+    loading,
     login,
     register,
     logout,
     updateProfile,
-    changePassword,
-    isAuthenticated: !!user,
-    isAdmin: user?.user_type === 'admin',
-    isArtist: user?.user_type === 'artist',
-    isParticipant: user?.user_type === 'participant',
+    isAuthenticated: !!token,
   };
 
   return (
@@ -146,6 +183,7 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
 
 
 

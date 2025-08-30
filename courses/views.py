@@ -14,6 +14,7 @@ from .serializers import (
     CourseSearchSerializer
 )
 from .permissions import IsCreatorOrReadOnly, IsAdminOrReadOnly
+from festivals.serializers import FestivalSerializer
 
 class CourseCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     """Vue pour les catégories de cours (lecture seule)"""
@@ -168,14 +169,15 @@ class CourseViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['get'])
     def featured(self, request):
-        """Cours mis en avant"""
-        queryset = self.get_queryset().filter(
+        """Cours en vedette pour la page d'accueil"""
+        # Récupérer les cours approuvés, triés par popularité (nombre d'inscriptions)
+        featured_courses = Course.objects.filter(
             status='approved'
         ).annotate(
             enrollment_count=Count('enrollments')
         ).order_by('-enrollment_count', '-created_at')[:6]
         
-        serializer = self.get_serializer(queryset, many=True)
+        serializer = self.get_serializer(featured_courses, many=True, context={'request': request})
         return Response(serializer.data)
     
     @action(detail=False, methods=['post'])
@@ -237,6 +239,67 @@ class CourseViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """Statistiques globales pour la page d'accueil"""
+        from django.db.models import Count
+        from django.contrib.auth import get_user_model
+        from festivals.models import Festival
+        from artists.models import ArtistProfile
+        
+        User = get_user_model()
+        
+        # Compter les cours disponibles
+        courses_count = Course.objects.filter(status='approved').count()
+        
+        # Compter le total des participants (somme de tous les participants inscrits)
+        total_participants = CourseEnrollment.objects.filter(
+            course__status='approved'
+        ).count()
+        
+        # Compter les artistes
+        artists_count = ArtistProfile.objects.filter(is_verified=True).count()
+        
+        # Compter les villes uniques où il y a des cours
+        cities_count = Course.objects.filter(
+            status='approved'
+        ).values('city').distinct().count()
+        
+        return Response({
+            'courses_count': courses_count,
+            'total_participants': total_participants,
+            'artists_count': artists_count,
+            'cities_count': cities_count
+        })
+
+    @action(detail=False, methods=['get'])
+    def upcoming_events(self, request):
+        """Événements à venir pour la page d'accueil"""
+        from festivals.models import Festival
+        from django.utils import timezone
+        
+        now = timezone.now()
+        
+        # Cours à venir
+        upcoming_courses = Course.objects.filter(
+            status='approved',
+            start_date__gt=now
+        ).order_by('start_date')[:3]
+        
+        # Festivals à venir
+        upcoming_festivals = Festival.objects.filter(
+            status='approved',
+            start_date__gt=now
+        ).order_by('start_date')[:3]
+        
+        courses_serializer = self.get_serializer(upcoming_courses, many=True, context={'request': request})
+        festivals_serializer = FestivalSerializer(upcoming_festivals, many=True, context={'request': request})
+        
+        return Response({
+            'courses': courses_serializer.data,
+            'festivals': festivals_serializer.data
+        })
 
 class CourseEnrollmentViewSet(viewsets.ModelViewSet):
     """Vue pour les inscriptions aux cours"""
@@ -318,6 +381,7 @@ class CourseEnrollmentViewSet(viewsets.ModelViewSet):
         course.save()
         
         return Response({"message": "Inscription annulée"})
+
 
 
 

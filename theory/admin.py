@@ -69,3 +69,4 @@ class ArticleAdmin(admin.ModelAdmin):
 
 
 
+

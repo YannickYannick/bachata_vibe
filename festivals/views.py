@@ -95,6 +95,31 @@ class FestivalViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(festivals, many=True)
         return Response(serializer.data)
     
+    @action(detail=False, methods=['get'])
+    def my_festivals(self, request):
+        """Festivals de l'utilisateur connecté"""
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Authentification requise"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Festivals créés par l'utilisateur
+        created_festivals = Festival.objects.filter(creator=request.user)
+        
+        # Festivals auxquels l'utilisateur est inscrit
+        enrolled_festivals = Festival.objects.filter(
+            enrollments__participant=request.user
+        ).distinct()
+        
+        created_serializer = FestivalSerializer(created_festivals, many=True, context={'request': request})
+        enrolled_serializer = FestivalSerializer(enrolled_festivals, many=True, context={'request': request})
+        
+        return Response({
+            'created': created_serializer.data,
+            'enrolled': enrolled_serializer.data
+        })
+
     @action(detail=True, methods=['post'])
     def enroll(self, request, pk=None):
         """Inscription à un festival"""
@@ -116,7 +141,8 @@ class FestivalViewSet(viewsets.ModelViewSet):
         enrollment = FestivalEnrollment.objects.create(
             festival=festival,
             participant=user,
-            status='pending'
+            status='pending',
+            price_paid=festival.base_price  # Ajouter le prix payé
         )
         
         # Incrémenter le nombre de participants
@@ -172,6 +198,7 @@ class FestivalEnrollmentViewSet(viewsets.ModelViewSet):
         enrollments = FestivalEnrollment.objects.filter(participant=request.user)
         serializer = self.get_serializer(enrollments, many=True)
         return Response(serializer.data)
+
 
 
 
