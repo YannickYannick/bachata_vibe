@@ -27,6 +27,7 @@ const Navigation = () => {
     { name: 'Cours', href: '/courses', current: location.pathname.startsWith('/courses') },
     { name: 'Festivals', href: '/festivals', current: location.pathname.startsWith('/festivals') },
     { name: 'Événements', href: '/events', current: location.pathname.startsWith('/events') },
+    { name: 'Formations', href: '/formations', current: location.pathname.startsWith('/formations') },
     { name: 'Trainings', href: '/trainings', current: location.pathname.startsWith('/trainings') },
     { name: 'Compétitions', href: '/competitions', current: location.pathname.startsWith('/competitions') },
     { name: 'Artistes', href: '/artists', current: location.pathname.startsWith('/artists') },

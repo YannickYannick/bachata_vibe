@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'competitions',
     'artists',
     'theory',
+    'formations',
 ]
 
 MIDDLEWARE = [

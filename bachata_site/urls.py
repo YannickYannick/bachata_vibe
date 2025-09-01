@@ -26,6 +26,9 @@ urlpatterns = [
     # API des événements
     path('api/events/', include('events.urls')),
     
+    # API des formations
+    path('api/formations/', include('formations.urls')),
+    
     # API des trainings
     path('api/trainings/', include('trainings.urls')),
     

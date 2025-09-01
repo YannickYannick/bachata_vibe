@@ -25,6 +25,9 @@ import MyCoursesPage from './components/MyCoursesPage';
 import TestAuth from './components/TestAuth';
 import FestivalAdminForm from './components/admin/FestivalAdminForm';
 import EventAdminForm from './components/admin/EventAdminForm';
+import FormationsPage from './components/FormationsPage';
+import FormationArticleDetailPage from './components/FormationArticleDetailPage';
+import FormationAdminForm from './components/admin/FormationAdminForm';
 import './App.css';
 
 function App() {
@@ -49,9 +52,13 @@ function App() {
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/my-events" element={<MyEventsPage />} />
               {/* Routes d'administration pour les événements */}
-              <Route path="/admin/events/add" element={<EventAdminForm />} />
-              <Route path="/admin/events/edit/:id" element={<EventAdminForm />} />
-              <Route path="/trainings" element={<TrainingsPage />} />
+                              <Route path="/admin/events/add" element={<EventAdminForm />} />
+                <Route path="/admin/events/edit/:id" element={<EventAdminForm />} />
+                <Route path="/formations" element={<FormationsPage />} />
+                <Route path="/formations/:slug" element={<FormationArticleDetailPage />} />
+                <Route path="/admin/formations/add" element={<FormationAdminForm />} />
+                <Route path="/admin/formations/edit/:slug" element={<FormationAdminForm />} />
+                <Route path="/trainings" element={<TrainingsPage />} />
               <Route path="/competitions" element={<CompetitionsPage />} />
               <Route path="/artists" element={<ArtistsPage />} />
               <Route path="/theory" element={<TheoryPage />} />
