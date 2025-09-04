@@ -1,14 +1,71 @@
+# Django et extensions
 Django==4.2.7
 djangorestframework==3.14.0
 django-cors-headers==4.3.1
 django-filter==23.3
-Pillow==10.1.0
-python-decouple==3.8
-psycopg2-binary==2.9.9
-django-storages==1.14.2
+django-extensions==3.2.3
+
+# Base de données
+psycopg2-binary==2.9.7
+dj-database-url==2.1.0
+
+# Fichiers statiques et médias
 whitenoise==6.6.0
+Pillow==10.0.1
+
+# Cache et sessions
+redis==5.0.1
+django-redis==5.4.0
+
+# Authentification et sécurité
+djangorestframework-simplejwt==5.3.0
+cryptography==41.0.7
+
+# Utilitaires
+python-decouple==3.8
 gunicorn==21.2.0
+celery==5.3.4
+django-celery-beat==2.5.0
 
+# Monitoring et logs
+sentry-sdk==1.38.0
 
+# Développement (optionnel en production)
+# django-debug-toolbar==4.2.0
+# django-silk==5.0.4
 
+# API et sérialisation
+markdown==3.5.1
+bleach==6.1.0
 
+# Email
+django-anymail==10.1
+
+# Internationalisation
+django-modeltranslation==0.18.11
+
+# SEO
+django-meta==3.0.0
+django-sitemaps==2.0.0
+
+# Compression
+django-compressor==4.4
+
+# Validation
+django-phonenumber-field==7.1.0
+phonenumbers==8.13.25
+
+# Géolocalisation
+django-countries==7.5.1
+
+# Gestion des fichiers
+django-storages==1.14.2
+boto3==1.29.7
+
+# Performance
+django-cachalot==2.6.1
+
+# Tests (optionnel en production)
+# pytest==7.4.3
+# pytest-django==4.7.0
+# factory-boy==3.3.0

@@ -15,14 +15,17 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
     '172.105.90.92',
-    'bachatavibe.com'
+    'bachatavibe.com',
+    '*.harmada.com',  # Domaine Harmada
+    'harmada.com',    # Domaine Harmada principal
+    '*'  # Temporaire pour debug - À RETIRER en production
 ]
 
 # Configuration de sécurité
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+SECURE_SSL_REDIRECT = False  # Désactivé pour Harmada
+SECURE_HSTS_SECONDS = 0  # Désactivé pour Harmada
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+SECURE_HSTS_PRELOAD = False
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
@@ -37,7 +40,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
         'OPTIONS': {
-            'sslmode': 'require',
+            'sslmode': 'prefer',  # Changé de 'require' à 'prefer' pour Harmada
         },
     }
 }
@@ -176,7 +179,6 @@ DATABASES = {
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField" 
-
 
 CORS_ALLOWED_ORIGINS = ["https://bachatavibe.com", "https://your-frontend-domain.com"]
 
