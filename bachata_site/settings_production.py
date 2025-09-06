@@ -21,14 +21,19 @@ ALLOWED_HOSTS = [
     '*'  # Temporaire pour debug - À RETIRER en production
 ]
 
-# Configuration de sécurité
-SECURE_SSL_REDIRECT = False  # Désactivé pour Harmada
-SECURE_HSTS_SECONDS = 0  # Désactivé pour Harmada
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
+# Configuration de sécurité HTTPS
+SECURE_SSL_REDIRECT = True  # Redirige HTTP vers HTTPS
+SECURE_HSTS_SECONDS = 31536000  # 1 an
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
+
+# Configuration HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 # Configuration de la base de données
 # Utilise PostgreSQL en production, SQLite en local si PostgreSQL n'est pas disponible
@@ -138,18 +143,27 @@ LOGGING = {
 # Créer le dossier de logs s'il n'existe pas
 (BASE_DIR / 'logs').mkdir(exist_ok=True)
 
-# Configuration CORS pour la production
+# Configuration CORS pour la production HTTPS
 CORS_ALLOWED_ORIGINS = [
-    "https://yourdomain.com",
-    "https://www.yourdomain.com",
-    "https://your-frontend-domain.com",
+    "https://bachatavibe.com",
+    "https://www.bachatavibe.com",
+    "https://votre-domaine.com",
+    "https://www.votre-domaine.com",
 ]
 
-# Configuration CSRF
+# Configuration CSRF pour HTTPS
 CSRF_TRUSTED_ORIGINS = [
-    "https://yourdomain.com",
-    "https://www.yourdomain.com",
+    "https://bachatavibe.com",
+    "https://www.bachatavibe.com",
+    "https://votre-domaine.com",
+    "https://www.votre-domaine.com",
 ]
+
+# Cookies sécurisés pour HTTPS
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_SAMESITE = 'Strict'
 
 # Configuration des emails (exemple avec SendGrid)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
