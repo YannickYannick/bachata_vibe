@@ -83,3 +83,5 @@ class TrainingListSerializer(serializers.ModelSerializer):
 
 
 
+
+

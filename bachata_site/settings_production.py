@@ -30,24 +30,58 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Configuration de la base de données PostgreSQL
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'bachata_site'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'prefer',  # Changé de 'require' à 'prefer' pour Harmada
-        },
+# Configuration de la base de données
+# Utilise PostgreSQL en production, SQLite en local si PostgreSQL n'est pas disponible
+if os.getenv('USE_POSTGRES', 'false').lower() == 'true':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME', 'bachata_site'),
+            'USER': os.getenv('DB_USER', 'postgres'),
+            'PASSWORD': os.getenv('DB_PASSWORD', ''),
+            'HOST': os.getenv('DB_HOST', 'localhost'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+            'OPTIONS': {
+                'sslmode': 'prefer',  # Changé de 'require' à 'prefer' pour Harmada
+            },
+        }
     }
-}
+else:
+    # Fallback vers SQLite pour le développement local
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Configuration des fichiers statiques
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Configuration pour servir le frontend React
+BUILD_DIR = BASE_DIR / 'frontend' / 'build'
+BUILD_STATIC_DIR = BUILD_DIR / 'static'
+
+# Évite l'avertissement si le build n'a pas encore été généré
+STATICFILES_DIRS = [p for p in [BUILD_STATIC_DIR] if p.exists()]
+
+# Configuration des templates pour le frontend React (fallback vers templates/ si pas de build)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BUILD_DIR if BUILD_DIR.exists() else BASE_DIR / 'templates'],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 
 # Configuration des médias
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -150,37 +184,10 @@ MIDDLEWARE = [
 
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = "static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 # Authentication settings
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
-# Database configuration - Une seule base de données pour tous les environnements
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField" 
-
-CORS_ALLOWED_ORIGINS = ["https://bachatavibe.com", "https://your-frontend-domain.com"]
-
-# Configuration CSRF
-CSRF_TRUSTED_ORIGINS = ["https://bachatavibe.com"]
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
