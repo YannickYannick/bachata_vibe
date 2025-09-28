@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import ApiService from '../services/api';
+
 
 const CarePage = () => {
   const [services, setServices] = useState([]);
@@ -13,7 +15,7 @@ const CarePage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/care/services/');
+      const response = await ApiService.getCare();
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
@@ -222,6 +224,12 @@ const CarePage = () => {
 };
 
 export default CarePage;
+
+
+
+
+
+
 
 
 

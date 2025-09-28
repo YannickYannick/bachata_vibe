@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import ApiService from '../services/api';
 import { 
   Plus, 
   Edit, 
@@ -36,13 +37,7 @@ const FestivalsPage = () => {
     try {
       setLoading(true);
       console.log('Fetching festivals...'); // Debug log
-      const response = await fetch('http://localhost:8000/api/festivals/festivals/');
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await ApiService.getFestivals();
       console.log('API Response:', data); // Debug log
       
       // S'assurer que festivals est toujours un tableau
@@ -92,21 +87,12 @@ const FestivalsPage = () => {
     if (!festivalToDelete) return;
     
     try {
-      const response = await fetch(`http://localhost:8000/api/festivals/festivals/${festivalToDelete.id}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-      });
+      await ApiService.deleteFestival(festivalToDelete.id, localStorage.getItem('token'));
       
-      if (response.ok) {
-        // Supprimer le festival de la liste locale
-        setFestivals(festivals.filter(f => f.id !== festivalToDelete.id));
-        setShowDeleteModal(false);
-        setFestivalToDelete(null);
-      } else {
-        throw new Error('Erreur lors de la suppression');
-      }
+      // Supprimer le festival de la liste locale
+      setFestivals(festivals.filter(f => f.id !== festivalToDelete.id));
+      setShowDeleteModal(false);
+      setFestivalToDelete(null);
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       alert('Erreur lors de la suppression du festival');

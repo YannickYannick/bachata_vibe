@@ -110,3 +110,9 @@ class CompetitionViewSet(viewsets.ModelViewSet):
 
 
 
+
+
+
+
+
+

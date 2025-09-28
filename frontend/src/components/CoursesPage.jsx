@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import ApiService from '../services/api';
+
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -15,13 +17,7 @@ const CoursesPage = () => {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/courses/courses/');
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await ApiService.getCourses();
       setCourses(data.results || data); // Gérer la pagination si elle existe
       setError(null);
     } catch (err) {

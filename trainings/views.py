@@ -104,3 +104,9 @@ class TrainingViewSet(viewsets.ModelViewSet):
 
 
 
+
+
+
+
+
+

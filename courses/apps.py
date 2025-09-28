@@ -15,3 +15,9 @@ class CoursesConfig(AppConfig):
 
 
 
+
+
+
+
+
+

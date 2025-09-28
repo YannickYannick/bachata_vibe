@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import ApiService from '../services/api';
+
 
 const TheoryPage = () => {
   const [articles, setArticles] = useState([]);
@@ -13,7 +15,7 @@ const TheoryPage = () => {
   const fetchArticles = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/theory/articles/');
+      const response = await ApiService.getTheory();
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
@@ -237,6 +239,12 @@ const TheoryPage = () => {
 };
 
 export default TheoryPage;
+
+
+
+
+
+
 
 
 

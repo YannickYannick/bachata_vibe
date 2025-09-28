@@ -113,3 +113,9 @@ class ArtistProfileViewSet(viewsets.ModelViewSet):
 
 
 
+
+
+
+
+
+

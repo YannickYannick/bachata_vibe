@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import ApiService from '../services/api';
 import {
   BookOpen,
   Search,
@@ -21,7 +22,6 @@ import {
   File
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import ApiService from '../services/api';
 
 const FormationsPage = () => {
   const navigate = useNavigate();
@@ -51,38 +51,27 @@ const FormationsPage = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/formations/categories/tree/');
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data);
-      }
+      const data = await ApiService.getFormations();
+      // L'API retourne {count: X, results: [...]}, on prend results
+      setCategories(data.results || data || []);
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
+      setCategories([]); // Assurer qu'on a toujours un tableau
     }
   };
 
   const loadArticles = async () => {
     try {
       setLoading(true);
-      let url = 'http://localhost:8000/api/formations/articles/';
       
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedCategory) params.append('category', selectedCategory);
-      if (selectedLevel !== 'all') params.append('level', selectedLevel);
-      if (sortBy) params.append('sort_by', sortBy);
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      if (selectedCategory) params.category = selectedCategory;
+      if (selectedLevel !== 'all') params.level = selectedLevel;
+      if (sortBy) params.sort_by = sortBy;
       
-      if (params.toString()) {
-        url += '?' + params.toString();
-      }
-      
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setArticles(data.results || data);
-      } else {
-        throw new Error('Erreur lors du chargement des articles');
-      }
+      const data = await ApiService.getFormationArticles(params);
+      setArticles(data.results || data);
     } catch (error) {
       console.error('Erreur:', error);
       setError(error.message);
@@ -123,20 +112,10 @@ const FormationsPage = () => {
     if (!articleToDelete) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/formations/articles/${articleToDelete.slug}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        setArticles(articles.filter(a => a.slug !== articleToDelete.slug));
-        setShowDeleteModal(false);
-        setArticleToDelete(null);
-      } else {
-        throw new Error('Erreur lors de la suppression');
-      }
+      await ApiService.deleteFormationArticle(articleToDelete.slug, localStorage.getItem('token'));
+      setArticles(articles.filter(a => a.slug !== articleToDelete.slug));
+      setShowDeleteModal(false);
+      setArticleToDelete(null);
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       alert('Erreur lors de la suppression de l\'article');
@@ -144,6 +123,9 @@ const FormationsPage = () => {
   };
 
   const renderCategoryTree = (categoryList, level = 0) => {
+    if (!Array.isArray(categoryList)) {
+      return null;
+    }
     return categoryList.map(category => (
       <div key={category.id} className="mb-2">
         <div 

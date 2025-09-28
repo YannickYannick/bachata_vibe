@@ -22,3 +22,9 @@ echo "🌐 Démarrage du serveur sur le port 3001..."
 PORT=3001 HOST=localhost DANGEROUSLY_DISABLE_HOST_CHECK=true npm start
 
 
+
+
+
+
+
+

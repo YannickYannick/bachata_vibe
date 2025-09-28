@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ApiService from '../services/api';
 import {
   BookOpen,
   Clock,
@@ -25,6 +26,7 @@ import {
   Share2
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+
 
 const FormationArticleDetailPage = () => {
   const { slug } = useParams();
@@ -55,7 +57,7 @@ const FormationArticleDetailPage = () => {
   const loadArticle = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/formations/articles/${slug}/`);
+      const response = await ApiService.getFormations();
       if (response.ok) {
         const data = await response.json();
         setArticle(data);
@@ -74,7 +76,7 @@ const FormationArticleDetailPage = () => {
 
   const loadComments = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/formations/comments/?article=${slug}`);
+      const response = await ApiService.getFormations();
       if (response.ok) {
         const data = await response.json();
         setComments(data.results || data);
@@ -91,24 +93,13 @@ const FormationArticleDetailPage = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/api/formations/favorites/toggle/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ article_id: article.id }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setIsFavorited(data.is_favorited);
-        // Mettre à jour le compteur de likes
-        setArticle(prev => ({
-          ...prev,
-          likes_count: data.is_favorited ? prev.likes_count + 1 : prev.likes_count - 1
-        }));
-      }
+      const data = await ApiService.toggleFormationFavorite(article.id, localStorage.getItem('token'));
+      setIsFavorited(data.is_favorited);
+      // Mettre à jour le compteur de likes
+      setArticle(prev => ({
+        ...prev,
+        likes_count: data.is_favorited ? prev.likes_count + 1 : prev.likes_count - 1
+      }));
     } catch (error) {
       console.error('Erreur lors de la gestion des favoris:', error);
     }
@@ -118,23 +109,8 @@ const FormationArticleDetailPage = () => {
     if (!user) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/formations/progress/update_progress/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ 
-          article_id: article.id, 
-          progress_percentage: percentage,
-          reading_time: 30 // Simuler 30 secondes de lecture
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserProgress(data);
-      }
+      const data = await ApiService.updateFormationProgress(article.id, percentage, localStorage.getItem('token'));
+      setUserProgress(data);
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la progression:', error);
     }
@@ -150,32 +126,17 @@ const FormationArticleDetailPage = () => {
     if (!newComment.trim()) return;
 
     try {
-      const response = await fetch(`http://localhost:8000/api/formations/comments/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          article: article.id,
-          content: newComment,
-          parent: replyTo?.id || null
-        }),
-      });
-
-      if (response.ok) {
-        const comment = await response.json();
-        setComments(prev => [comment, ...prev]);
-        setNewComment('');
-        setReplyTo(null);
-        setReplyContent('');
-        
-        // Mettre à jour le compteur de commentaires
-        setArticle(prev => ({
-          ...prev,
-          comments_count: prev.comments_count + 1
-        }));
-      }
+      const comment = await ApiService.addFormationComment(article.id, newComment, localStorage.getItem('token'));
+      setComments(prev => [comment, ...prev]);
+      setNewComment('');
+      setReplyTo(null);
+      setReplyContent('');
+      
+      // Mettre à jour le compteur de commentaires
+      setArticle(prev => ({
+        ...prev,
+        comments_count: prev.comments_count + 1
+      }));
     } catch (error) {
       console.error('Erreur lors de l\'ajout du commentaire:', error);
     }
@@ -187,18 +148,8 @@ const FormationArticleDetailPage = () => {
 
   const confirmDeleteArticle = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/formations/articles/${slug}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-      });
-
-      if (response.ok) {
-        navigate('/formations');
-      } else {
-        throw new Error('Erreur lors de la suppression');
-      }
+      await ApiService.deleteFormationArticle(slug, localStorage.getItem('token'));
+      navigate('/formations');
     } catch (error) {
       console.error('Erreur:', error);
       alert('Erreur lors de la suppression de l\'article');

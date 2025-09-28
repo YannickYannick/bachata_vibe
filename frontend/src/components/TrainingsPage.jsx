@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import ApiService from '../services/api';
+
 
 const TrainingsPage = () => {
   const [trainings, setTrainings] = useState([]);
@@ -13,13 +15,7 @@ const TrainingsPage = () => {
   const fetchTrainings = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/trainings/trainings/');
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await ApiService.getTrainings();
       setTrainings(data.results || data);
       setError(null);
     } catch (err) {
@@ -205,6 +201,7 @@ const TrainingsPage = () => {
 };
 
 export default TrainingsPage;
+
 
 
 

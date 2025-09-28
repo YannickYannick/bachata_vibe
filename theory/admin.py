@@ -72,3 +72,9 @@ class ArticleAdmin(admin.ModelAdmin):
 
 
 
+
+
+
+
+
+

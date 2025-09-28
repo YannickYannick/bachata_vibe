@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+import ApiService from '../services/api';
+
 
 const FestivalDetailPage = () => {
   const { id } = useParams();
@@ -19,7 +21,7 @@ const FestivalDetailPage = () => {
   const fetchFestivalDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/festivals/festivals/${id}/`);
+      const response = await ApiService.getFestivals();
       
       if (!response.ok) {
         throw new Error(`Erreur HTTP: ${response.status}`);
@@ -45,21 +47,9 @@ const FestivalDetailPage = () => {
 
     try {
       setEnrolling(true);
-      const response = await fetch(`http://localhost:8000/api/festivals/festivals/${id}/enroll/`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        toast.success('Inscription réussie !');
-        navigate('/my-festivals');
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.error || 'Erreur lors de l\'inscription');
-      }
+      await ApiService.enrollInFestival(id, token);
+      toast.success('Inscription réussie !');
+      navigate('/my-festivals');
     } catch (err) {
       console.error('Erreur lors de l\'inscription:', err);
       toast.error('Erreur lors de l\'inscription');

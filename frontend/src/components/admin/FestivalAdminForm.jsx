@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ApiService from '../../services/api';
 import { 
   Save, 
   X, 
@@ -52,7 +53,7 @@ const FestivalAdminForm = () => {
   const fetchFestival = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/festivals/festivals/${id}/`);
+      const response = await ApiService.getFestivals();
       if (!response.ok) throw new Error('Festival non trouvé');
       
       const festival = await response.json();
@@ -104,24 +105,26 @@ const FestivalAdminForm = () => {
         }
       });
 
-      const url = isEditing 
-        ? `http://localhost:8000/api/festivals/festivals/${id}/`
-        : 'http://localhost:8000/api/festivals/festivals/';
+      const festivalData = {
+        name: formData.name,
+        description: formData.description,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        location: formData.location,
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postal_code,
+        country: formData.country,
+        max_participants: formData.max_participants,
+        price: formData.price,
+        category: formData.category,
+        level: formData.level,
+        is_featured: formData.is_featured,
+        status: formData.status,
+        image: formData.image
+      };
       
-      const method = isEditing ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-        body: formDataToSend
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Erreur lors de la sauvegarde');
-      }
+      await ApiService.saveFestival(festivalData, localStorage.getItem('token'), isEditing ? id : null);
 
       // Rediriger vers la liste des festivals
       navigate('/festivals');

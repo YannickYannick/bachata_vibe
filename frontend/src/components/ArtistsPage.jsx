@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import ApiService from '../services/api';
+
 
 const ArtistsPage = () => {
   const [artists, setArtists] = useState([]);
@@ -13,13 +15,7 @@ const ArtistsPage = () => {
   const fetchArtists = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/artists/artists/');
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await ApiService.getArtists();
       setArtists(data.results || data);
       setError(null);
     } catch (err) {
@@ -223,6 +219,12 @@ const ArtistsPage = () => {
 };
 
 export default ArtistsPage;
+
+
+
+
+
+
 
 
 

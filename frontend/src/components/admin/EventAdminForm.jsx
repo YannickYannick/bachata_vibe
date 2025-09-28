@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ApiService from '../../services/api';
 import { 
   Save, 
   X, 
@@ -66,7 +67,7 @@ const EventAdminForm = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/events/categories/');
+      const response = await ApiService.getEvents();
       if (response.ok) {
         const data = await response.json();
         setCategories(data);
@@ -79,7 +80,7 @@ const EventAdminForm = () => {
   const fetchEvent = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/events/events/${id}/`);
+      const response = await ApiService.getEvents();
       if (!response.ok) throw new Error('Événement non trouvé');
       
       const event = await response.json();
@@ -134,24 +135,26 @@ const EventAdminForm = () => {
         }
       });
 
-      const url = isEditing 
-        ? `http://localhost:8000/api/events/events/${id}/`
-        : 'http://localhost:8000/api/events/events/';
+      const eventData = {
+        title: formData.title,
+        description: formData.description,
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postal_code,
+        country: formData.country,
+        max_participants: formData.max_participants,
+        price: formData.price,
+        category: formData.category,
+        level: formData.level,
+        is_featured: formData.is_featured,
+        status: formData.status,
+        image: formData.image
+      };
       
-      const method = isEditing ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-        body: formDataToSend
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Erreur lors de la sauvegarde');
-      }
+      await ApiService.saveEvent(eventData, localStorage.getItem('token'), isEditing ? id : null);
 
       // Rediriger vers la liste des événements
       navigate('/events');

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ApiService from '../services/api';
+import { getApiUrl } from '../config/api';
 
 const ProfilePage = () => {
   const { user, logout, isAuthenticated, loading, token } = useAuth();
@@ -21,19 +23,9 @@ const ProfilePage = () => {
 
       try {
         setCoursesLoading(true);
-        const response = await fetch('http://localhost:8000/api/courses/courses/my_courses/', {
-          headers: {
-            'Authorization': `Token ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setCreated(data.created || []);
-          setEnrolled(data.enrolled || []);
-        } else {
-          console.error('Erreur lors de la récupération des cours');
-        }
+        const data = await ApiService.getMyCourses(token);
+        setCreated(data.created || []);
+        setEnrolled(data.enrolled || []);
       } catch (error) {
         console.error('Erreur lors de la récupération des cours:', error);
       } finally {
@@ -49,19 +41,9 @@ const ProfilePage = () => {
 
       try {
         setFestivalsLoading(true);
-        const response = await fetch('http://localhost:8000/api/festivals/festivals/my_festivals/', {
-          headers: {
-            'Authorization': `Token ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setFestivalsCreated(data.created || []);
-          setFestivalsEnrolled(data.enrolled || []);
-        } else {
-          console.error('Erreur lors de la récupération des festivals');
-        }
+        const data = await ApiService.getMyFestivals(token);
+        setFestivalsCreated(data.created || []);
+        setFestivalsEnrolled(data.enrolled || []);
       } catch (error) {
         console.error('Erreur lors de la récupération des festivals:', error);
       } finally {
@@ -261,7 +243,7 @@ const ProfilePage = () => {
             {/* Lien d'administration pour les admins */}
             {user?.user_type === 'admin' && (
               <a
-                href="http://localhost:8000/admin/"
+                href={`${getApiUrl().replace('/api', '')}/admin/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center p-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all"
@@ -336,7 +318,7 @@ const ProfilePage = () => {
 
             <div className="mt-4 text-center">
               <a
-                href="http://localhost:8000/admin/"
+                href={`${getApiUrl().replace('/api', '')}/admin/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-6 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"

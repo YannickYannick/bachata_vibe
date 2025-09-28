@@ -135,3 +135,31 @@ TIME_ZONE = 'Europe/Paris'
 
 # Configuration des middlewares pour les tests
 
+# Configuration de l'API - Mode de déploiement
+# True = Mode en ligne (https://bachatavibe.com), False = Mode local (http://localhost:8000)
+USE_PRODUCTION_API = False
+
+# URLs de l'API selon le mode
+if USE_PRODUCTION_API:
+    API_BASE_URL = 'https://bachatavibe.com/api'
+    FRONTEND_BASE_URL = 'https://bachatavibe.com'
+else:
+    API_BASE_URL = 'http://localhost:8000/api'
+    FRONTEND_BASE_URL = 'http://localhost:3000'
+
+# Configuration CORS mise à jour selon le mode
+CORS_ALLOWED_ORIGINS = [
+    FRONTEND_BASE_URL,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+# Configuration CSRF mise à jour selon le mode
+CSRF_TRUSTED_ORIGINS = [
+    FRONTEND_BASE_URL,
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+

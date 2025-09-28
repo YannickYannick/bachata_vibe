@@ -60,10 +60,13 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'bachata_site.urls'
 
+# Configuration pour servir le frontend React
+BUILD_DIR = BASE_DIR / 'frontend' / 'build'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BUILD_DIR if BUILD_DIR.exists() else BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -111,9 +114,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
+
+# Configuration des fichiers statiques pour le frontend React
+BUILD_STATIC_DIR = BUILD_DIR / 'static'
+
+# Évite l'avertissement si le build n'a pas encore été généré
+STATICFILES_DIRS = [p for p in [BUILD_STATIC_DIR, BASE_DIR / 'static'] if p.exists()]
 
 # Media files
 MEDIA_URL = '/media/'
@@ -147,9 +153,25 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for development
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only allow all origins in debug mode
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Site ID
 SITE_ID = 1

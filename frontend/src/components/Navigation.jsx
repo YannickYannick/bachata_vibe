@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { getApiUrl } from '../config/api';
 import { 
   BookOpen, 
   Calendar,
@@ -82,7 +83,7 @@ const Navigation = () => {
             {/* Lien d'administration pour les admins */}
             {user?.user_type === 'admin' && (
               <a
-                href="http://localhost:8000/admin/"
+                href={`${getApiUrl().replace('/api', '')}/admin/`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3 py-2 rounded-md text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 transition-colors flex items-center"

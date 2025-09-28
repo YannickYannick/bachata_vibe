@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
+import ApiService from '../services/api';
 import { 
   Calendar, 
   MapPin, 
@@ -15,7 +16,6 @@ import {
   Trash2,
   Eye
 } from 'lucide-react';
-import ApiService from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const EventsPage = () => {
@@ -116,21 +116,12 @@ const EventsPage = () => {
     if (!eventToDelete) return;
     
     try {
-      const response = await fetch(`http://localhost:8000/api/events/events/${eventToDelete.slug}/`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-      });
+      await ApiService.deleteEvent(eventToDelete.slug, localStorage.getItem('token'));
       
-      if (response.ok) {
-        // Supprimer l'événement de la liste locale
-        setEvents(events.filter(e => e.slug !== eventToDelete.slug));
-        setShowDeleteModal(false);
-        setEventToDelete(null);
-      } else {
-        throw new Error('Erreur lors de la suppression');
-      }
+      // Supprimer l'événement de la liste locale
+      setEvents(events.filter(e => e.slug !== eventToDelete.slug));
+      setShowDeleteModal(false);
+      setEventToDelete(null);
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
       alert('Erreur lors de la suppression de l\'événement');

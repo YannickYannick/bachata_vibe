@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ApiService from '../services/api';
 
 const MyCoursesPage = () => {
   const { user, isAuthenticated, token } = useAuth();
@@ -17,19 +18,9 @@ const MyCoursesPage = () => {
 
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:8000/api/courses/courses/my_courses/', {
-          headers: {
-            'Authorization': `Token ${token}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setCreated(data.created || []);
-          setEnrolled(data.enrolled || []);
-        } else {
-          console.error('Erreur lors de la récupération des cours');
-        }
+        const data = await ApiService.getMyCourses(token);
+        setCreated(data.created || []);
+        setEnrolled(data.enrolled || []);
       } catch (error) {
         console.error('Erreur lors de la récupération des cours:', error);
       } finally {

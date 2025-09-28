@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import ApiService from '../services/api';
 
 const CompetitionsPage = () => {
   const [competitions, setCompetitions] = useState([]);
@@ -13,13 +14,7 @@ const CompetitionsPage = () => {
   const fetchCompetitions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8000/api/competitions/competitions/');
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await ApiService.getCompetitions();
       setCompetitions(data.results || data);
       setError(null);
     } catch (err) {
@@ -236,6 +231,7 @@ const CompetitionsPage = () => {
 };
 
 export default CompetitionsPage;
+
 
 
 

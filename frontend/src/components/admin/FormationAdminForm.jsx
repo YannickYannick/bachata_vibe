@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import ApiService from '../../services/api';
 import {
   BookOpen,
   Save,
@@ -16,6 +17,7 @@ import {
   File
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+
 
 const FormationAdminForm = () => {
   const { slug } = useParams();
@@ -60,7 +62,7 @@ const FormationAdminForm = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/formations/categories/');
+      const response = await ApiService.getFormations();
       if (response.ok) {
         const data = await response.json();
         setCategories(data.results || data);
@@ -73,21 +75,21 @@ const FormationAdminForm = () => {
   const loadRelatedData = async () => {
     try {
       // Charger les cours
-      const coursesResponse = await fetch('http://localhost:8000/api/courses/courses/');
+      const coursesResponse = await ApiService.getCourses();
       if (coursesResponse.ok) {
         const coursesData = await coursesResponse.json();
         setRelatedCourses(coursesData.results || coursesData);
       }
 
       // Charger les festivals
-      const festivalsResponse = await fetch('http://localhost:8000/api/festivals/festivals/');
+      const festivalsResponse = await ApiService.getFestivals();
       if (festivalsResponse.ok) {
         const festivalsData = await festivalsResponse.json();
         setRelatedFestivals(festivalsData.results || festivalsData);
       }
 
       // Charger les événements
-      const eventsResponse = await fetch('http://localhost:8000/api/events/events/');
+      const eventsResponse = await ApiService.getEvents();
       if (eventsResponse.ok) {
         const eventsData = await eventsResponse.json();
         setRelatedEvents(eventsData.results || eventsData);
@@ -100,7 +102,7 @@ const FormationAdminForm = () => {
   const loadArticle = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8000/api/formations/articles/${slug}/`);
+      const response = await ApiService.getFormations();
       if (response.ok) {
         const article = await response.json();
         setFormData({
@@ -242,28 +244,23 @@ const FormationAdminForm = () => {
         }
       });
       
-      const url = isEditing 
-        ? `http://localhost:8000/api/formations/articles/${slug}/`
-        : 'http://localhost:8000/api/formations/articles/';
+      const articleData = {
+        title: formData.title,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        category: formData.category,
+        level: formData.level,
+        tags: formData.tags,
+        is_published: formData.is_published,
+        is_featured: formData.is_featured,
+        reading_time: formData.reading_time,
+        image: formData.image
+      };
       
-      const method = isEditing ? 'PUT' : 'POST';
+      await ApiService.saveFormationArticle(articleData, localStorage.getItem('token'), isEditing ? slug : null);
       
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Token ${localStorage.getItem('token')}`,
-        },
-        body: formDataToSend
-      });
-      
-      if (response.ok) {
-        const result = await response.json();
-        alert(isEditing ? 'Article modifié avec succès !' : 'Article créé avec succès !');
-        navigate('/formations');
-      } else {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Erreur lors de la sauvegarde');
-      }
+      alert(isEditing ? 'Article modifié avec succès !' : 'Article créé avec succès !');
+      navigate('/formations');
     } catch (error) {
       console.error('Erreur:', error);
       alert(`Erreur lors de la sauvegarde: ${error.message}`);
