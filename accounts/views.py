@@ -3,6 +3,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
+from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth import update_session_auth_hash
 from django.shortcuts import get_object_or_404
 from django.db import transaction
@@ -44,10 +45,12 @@ class UserLoginView(APIView):
     Vue pour la connexion des utilisateurs
     """
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []  # Pas d'authentification requise pour le login
     
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)

@@ -14,12 +14,11 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ['title', 'content', 'excerpt', 'author_name', 'tags']
     readonly_fields = ['created_at', 'updated_at', 'views_count', 'slug']
     list_editable = ['is_published', 'is_featured']
-    prepopulated_fields = {'slug': ('title',)}
     date_hierarchy = 'published_date'
     
     fieldsets = (
         ('Informations de base', {
-            'fields': ('title', 'slug', 'excerpt', 'content', 'category', 'difficulty')
+            'fields': ('title', 'excerpt', 'content', 'category', 'difficulty')
         }),
         ('Auteur et publication', {
             'fields': ('author_name', 'published_date', 'is_published', 'is_featured')
@@ -31,10 +30,16 @@ class ArticleAdmin(admin.ModelAdmin):
             'fields': ('tags', 'related_articles', 'resources', 'bibliography')
         }),
         ('Métadonnées', {
-            'fields': ('reading_time', 'views_count', 'created_at', 'updated_at'),
+            'fields': ('slug', 'reading_time', 'views_count', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         })
     )
+
+    def save_model(self, request, obj, form, change):
+        # Assigner automatiquement l'auteur connecté si non défini
+        if not obj.author_id:
+            obj.author = request.user
+        super().save_model(request, obj, form, change)
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('author')
@@ -63,6 +68,8 @@ class ArticleAdmin(admin.ModelAdmin):
         updated = queryset.update(is_featured=False)
         self.message_user(request, f'{updated} article(s) retiré(s) de la mise en avant')
     unmark_as_featured.short_description = 'Retirer de la mise en avant'
+
+
 
 
 

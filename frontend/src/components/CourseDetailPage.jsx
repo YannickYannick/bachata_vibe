@@ -21,18 +21,15 @@ const CourseDetailPage = () => {
   const fetchCourseDetails = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.getCourses();
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+      if (!id) {
+        throw new Error('ID du cours manquant');
       }
-      
-      const data = await response.json();
-      setCourse(data);
+      const data = await ApiService.getCourse(id);
+      setCourse(data || null);
       setError(null);
     } catch (err) {
       console.error('Erreur lors de la récupération du cours:', err);
-      setError('Impossible de charger les détails du cours.');
+      setError(err.message || 'Impossible de charger les détails du cours.');
     } finally {
       setLoading(false);
     }

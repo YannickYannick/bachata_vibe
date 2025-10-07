@@ -47,7 +47,8 @@ class ArtistAdmin(admin.ModelAdmin):
     )
     
     def get_queryset(self, request):
-        return super().get_queryset(request).prefetch_related('courses', 'awards')
+        # Remove invalid prefetches; JSONFields cannot be prefetched and no 'courses' relation exists
+        return super().get_queryset(request)
     
     def awards_count(self, obj):
         return len(obj.awards) if obj.awards else 0
@@ -72,3 +73,9 @@ class ArtistAdmin(admin.ModelAdmin):
         updated = queryset.update(is_featured=True)
         self.message_user(request, f'{updated} artiste(s) marqué(s) comme "Mis en avant"')
     mark_as_featured.short_description = 'Marquer comme "Mis en avant"'
+
+    def save_model(self, request, obj, form, change):
+        # Assign the logged-in user as owner if not provided
+        if not obj.user_id:
+            obj.user = request.user
+        super().save_model(request, obj, form, change)

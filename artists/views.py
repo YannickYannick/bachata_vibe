@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from courses.permissions import IsAdminOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db import models
@@ -14,7 +15,7 @@ class ArtistProfileViewSet(viewsets.ModelViewSet):
     """
     queryset = ArtistProfile.objects.all()
     serializer_class = ArtistProfileSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['base_location', 'is_featured', 'is_verified']
     search_fields = ['artist_name', 'bio', 'base_location', 'specialties']
@@ -104,6 +105,8 @@ class ArtistProfileViewSet(viewsets.ModelViewSet):
         artist.views_count += 1
         artist.save()
         return Response({'status': 'Vues incrémentées'})
+
+
 
 
 

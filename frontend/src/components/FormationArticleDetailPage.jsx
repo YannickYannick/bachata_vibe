@@ -57,15 +57,10 @@ const FormationArticleDetailPage = () => {
   const loadArticle = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.getFormations();
-      if (response.ok) {
-        const data = await response.json();
-        setArticle(data);
-        setIsFavorited(data.is_favorited);
-        setUserProgress(data.user_progress);
-      } else {
-        throw new Error('Article non trouvé');
-      }
+      const data = await ApiService.getFormationArticle(slug);
+      setArticle(data);
+      setIsFavorited(data.is_favorited || false);
+      setUserProgress(data.user_progress || null);
     } catch (error) {
       console.error('Erreur:', error);
       setError(error.message);

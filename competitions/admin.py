@@ -23,7 +23,7 @@ class CompetitionAdmin(admin.ModelAdmin):
             'fields': ('location', 'address', 'city', 'postal_code', 'country')
         }),
         ('Dates et horaires', {
-            'fields': ('start_date', 'end_date', 'registration_deadline', 'schedule')
+            'fields': ('start_date', 'end_date', 'registration_deadline')
         }),
         ('Prix et récompenses', {
             'fields': ('prize_pool', 'currency', 'prize_distribution')
@@ -38,7 +38,7 @@ class CompetitionAdmin(admin.ModelAdmin):
             'fields': ('main_image', 'gallery', 'video_url')
         }),
         ('Règles et critères', {
-            'fields': ('rules', 'judging_criteria', 'categories', 'age_groups', 'tags')
+            'fields': ('rules', 'judging_criteria', 'age_groups', 'tags')
         }),
         ('Métadonnées', {
             'fields': ('created_at', 'updated_at'),

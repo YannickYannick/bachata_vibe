@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from courses.permissions import IsAdminOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db import models
@@ -14,7 +15,7 @@ class CompetitionViewSet(viewsets.ModelViewSet):
     """
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['category', 'status', 'city', 'country']
     search_fields = ['title', 'description', 'location', 'city']
@@ -101,6 +102,8 @@ class CompetitionViewSet(viewsets.ModelViewSet):
         competitions = self.get_queryset().filter(category=category)
         serializer = self.get_serializer(competitions, many=True)
         return Response(serializer.data)
+
+
 
 
 

@@ -21,6 +21,9 @@ ALLOWED_HOSTS = [
     '*'  # Temporaire pour debug - À RETIRER en production
 ]
 
+# Frontend dev server disabled in production
+FRONTEND_DEV_MODE = False
+
 # Configuration de sécurité HTTPS
 SECURE_SSL_REDIRECT = True  # Redirige HTTP vers HTTPS
 SECURE_HSTS_SECONDS = 31536000  # 1 an

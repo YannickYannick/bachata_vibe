@@ -48,6 +48,12 @@ class FormationArticleAdmin(admin.ModelAdmin):
     ordering = ['-created_at']
     date_hierarchy = 'created_at'
     
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Filtre les catégories pour n'afficher que les actives"""
+        if db_field.name == "category":
+            kwargs["queryset"] = FormationCategory.objects.filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
     fieldsets = (
         ('Contenu', {
             'fields': ('title', 'slug', 'content', 'excerpt', 'featured_image')

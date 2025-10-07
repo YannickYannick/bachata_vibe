@@ -19,20 +19,22 @@ const FestivalDetailPage = () => {
   }, [id]);
 
   const fetchFestivalDetails = async () => {
+    if (!id) {
+      setError('ID du festival manquant.');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
-      const response = await ApiService.getFestivals();
-      
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      console.log('Fetching festival with ID:', id);
+      const data = await ApiService.getFestival(id);
+      console.log('Festival data received:', data);
       setFestival(data);
       setError(null);
     } catch (err) {
       console.error('Erreur lors de la récupération du festival:', err);
-      setError('Impossible de charger les détails du festival.');
+      setError(err.message || 'Impossible de charger les détails du festival.');
     } finally {
       setLoading(false);
     }

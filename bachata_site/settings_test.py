@@ -14,6 +14,8 @@ DEBUG = False
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    '172.105.90.92',
+    'bachatavibe.com',
 ]
 
 # Configuration de sécurité (désactivée pour les tests)
@@ -34,6 +36,7 @@ DATABASES = {
 }
 
 # Configuration des fichiers statiques
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
@@ -48,7 +51,7 @@ BUILD_STATIC_DIR = BUILD_DIR / 'static'
 # Évite l'avertissement si le build n'a pas encore été généré
 STATICFILES_DIRS = [p for p in [BUILD_STATIC_DIR] if p.exists()]
 
-# Configuration des templates pour le frontend React (fallback vers templates/ si pas de build)
+# Configuration des templates pour le frontend React (mode build)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -139,6 +142,10 @@ TIME_ZONE = 'Europe/Paris'
 # True = Mode en ligne (https://bachatavibe.com), False = Mode local (http://localhost:8000)
 USE_PRODUCTION_API = False
 
+# Nouveau: flags explicites pour le front en mode développement
+FRONTEND_DEV_MODE = not USE_PRODUCTION_API
+FRONTEND_DEV_URL = 'http://localhost:3000'
+
 # URLs de l'API selon le mode
 if USE_PRODUCTION_API:
     API_BASE_URL = 'https://bachatavibe.com/api'
@@ -152,7 +159,12 @@ CORS_ALLOWED_ORIGINS = [
     FRONTEND_BASE_URL,
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
 ]
+
+if FRONTEND_DEV_MODE and FRONTEND_DEV_URL not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_DEV_URL)
 
 # Configuration CSRF mise à jour selon le mode
 CSRF_TRUSTED_ORIGINS = [
@@ -162,4 +174,9 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+
+# Désactiver CSRF pour les API REST (temporaire pour debug)
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_USE_SESSIONS = False
 

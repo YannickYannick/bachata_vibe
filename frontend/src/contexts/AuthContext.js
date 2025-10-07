@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { getApiUrl } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -17,7 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
   const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = `${getApiUrl()}/accounts`;
+  const API_BASE_URL = 'http://localhost:8000/api';
 
   // Vérifier le token au chargement
   useEffect(() => {
@@ -30,7 +29,7 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/current-user/`, {
+      const response = await fetch(`${API_BASE_URL}/accounts/current-user/`, {
         headers: {
           'Authorization': `Token ${token}`,
         },
@@ -53,7 +52,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/login/`, {
+      const response = await fetch(`${API_BASE_URL}/accounts/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +72,19 @@ export const AuthProvider = ({ children }) => {
         return { success: true };
       } else {
         const errorData = await response.json();
-        const errorMessage = errorData.error || 'Erreur de connexion';
+        // Extraire le message d'erreur depuis la réponse Django REST Framework
+        let errorMessage = 'Erreur de connexion';
+        
+        if (errorData.non_field_errors && errorData.non_field_errors.length > 0) {
+          errorMessage = errorData.non_field_errors[0];
+        } else if (errorData.username && errorData.username.length > 0) {
+          errorMessage = errorData.username[0];
+        } else if (errorData.password && errorData.password.length > 0) {
+          errorMessage = errorData.password[0];
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
+        
         toast.error(errorMessage);
         return { success: false, error: errorMessage };
       }
@@ -121,7 +132,7 @@ export const AuthProvider = ({ children }) => {
     try {
       if (token) {
         // Appeler l'API de déconnexion
-        await fetch(`${API_BASE_URL}/logout/`, {
+        await fetch(`${API_BASE_URL}/accounts/logout/`, {
           method: 'POST',
           headers: {
             'Authorization': `Token ${token}`,

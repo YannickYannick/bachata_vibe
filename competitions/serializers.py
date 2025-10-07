@@ -83,3 +83,6 @@ class CompetitionListSerializer(serializers.ModelSerializer):
 
 
 
+
+
+

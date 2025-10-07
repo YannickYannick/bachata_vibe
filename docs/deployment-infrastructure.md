@@ -373,6 +373,69 @@ graph TB
 
 Ces graphiques vous donnent une vision complète de l'infrastructure et du déploiement de votre application BachataVibe ! 🚀✨
 
+## ⚙️ Mode développement du frontend
+
+Pour connecter un serveur React en développement (hot reload) au backend Django:
+
+- Activez le mode via les settings Django:
+
+```12:22:bachata_site/settings.py
+# Frontend dev mode configuration
+FRONTEND_DEV_MODE = config('FRONTEND_DEV_MODE', default=False, cast=bool)
+FRONTEND_DEV_URL = config('FRONTEND_DEV_URL', default='http://localhost:3000')
+```
+
+- En développement, ces valeurs sont déjà définies:
+
+```10:18:bachata_site/settings_dev.py
+# Frontend dev server configuration
+FRONTEND_DEV_MODE = True
+FRONTEND_DEV_URL = 'http://localhost:3000'
+```
+
+- En production, le mode est désactivé:
+
+```12:14:bachata_site/settings_production.py
+FRONTEND_DEV_MODE = False
+```
+
+Impact:
+- CORS autorise automatiquement `FRONTEND_DEV_URL` quand `FRONTEND_DEV_MODE` est actif.
+- Lancez le frontend: `npm start` dans `frontend/` (React Dev Server)
+- Backend: `python manage.py runserver 0.0.0.0:8000`
+
+Optionnel: définissez via variables d'environnement (.env) côté Django:
+
+```env
+FRONTEND_DEV_MODE=True
+FRONTEND_DEV_URL=http://localhost:3000
+```
+
+Alternative via `settings_test.py` (utilisé dans votre projet):
+
+```140:169:bachata_site/settings_test.py
+# Basculer entre API prod et locale
+USE_PRODUCTION_API = False
+
+# Flags explicites pour le front en dev
+FRONTEND_DEV_MODE = not USE_PRODUCTION_API
+FRONTEND_DEV_URL = 'http://localhost:3000'
+
+# URLs selon le mode et CORS mis à jour
+if USE_PRODUCTION_API:
+    API_BASE_URL = 'https://bachatavibe.com/api'
+    FRONTEND_BASE_URL = 'https://bachatavibe.com'
+else:
+    API_BASE_URL = 'http://localhost:8000/api'
+    FRONTEND_BASE_URL = 'http://localhost:3000'
+
+CORS_ALLOWED_ORIGINS = [FRONTEND_BASE_URL, 'http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:8000', 'http://127.0.0.1:8000']
+if FRONTEND_DEV_MODE and FRONTEND_DEV_URL not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_DEV_URL)
+```
+
+
+
 
 
 

@@ -17,6 +17,10 @@ ALLOWED_HOSTS = [
     '0.0.0.0',
 ]
 
+# Frontend dev server configuration
+FRONTEND_DEV_MODE = True
+FRONTEND_DEV_URL = 'http://localhost:3000'
+
 # Configuration de sécurité (désactivée pour le développement)
 SECURE_SSL_REDIRECT = False
 SECURE_HSTS_SECONDS = 0

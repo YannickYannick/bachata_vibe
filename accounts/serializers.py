@@ -90,14 +90,22 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
         
         if username and password:
+            # Vérifier d'abord si l'utilisateur existe
+            try:
+                user = User.objects.get(username=username)
+                if not user.is_active:
+                    raise serializers.ValidationError('Ce compte a été désactivé.')
+            except User.DoesNotExist:
+                raise serializers.ValidationError('Nom d\'utilisateur incorrect.')
+            
+            # Ensuite vérifier le mot de passe
             user = authenticate(username=username, password=password)
             if not user:
-                raise serializers.ValidationError('Identifiants invalides.')
-            if not user.is_active:
-                raise serializers.ValidationError('Compte désactivé.')
+                raise serializers.ValidationError('Mot de passe incorrect.')
+            
             attrs['user'] = user
         else:
-            raise serializers.ValidationError('Username et password requis.')
+            raise serializers.ValidationError('Nom d\'utilisateur et mot de passe requis.')
         
         return attrs
 

@@ -17,6 +17,10 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# Frontend dev mode configuration
+FRONTEND_DEV_MODE = config('FRONTEND_DEV_MODE', default=False, cast=bool)
+FRONTEND_DEV_URL = config('FRONTEND_DEV_URL', default='http://localhost:3000')
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -156,6 +160,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+
+# When FRONTEND_DEV_MODE is enabled, allow the dev server URL explicitly
+if FRONTEND_DEV_MODE and FRONTEND_DEV_URL:
+    if FRONTEND_DEV_URL not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(FRONTEND_DEV_URL)
 
 CORS_ALLOW_CREDENTIALS = True
 

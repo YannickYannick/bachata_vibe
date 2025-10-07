@@ -26,6 +26,7 @@ const FestivalAdminForm = () => {
     country: 'France',
     start_date: '',
     end_date: '',
+    registration_deadline: '',
     duration_days: 1,
     max_participants: 100,
     base_price: 0,
@@ -33,10 +34,13 @@ const FestivalAdminForm = () => {
     is_free: false,
     status: 'pending',
     main_image: null,
+    location: '',
+    address: '',
+    postal_code: '',
     highlights: '',
     schedule: '',
     requirements: '',
-    website: '',
+    website_url: '',
     instagram: '',
     facebook: ''
   });
@@ -53,14 +57,28 @@ const FestivalAdminForm = () => {
   const fetchFestival = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.getFestivals();
-      if (!response.ok) throw new Error('Festival non trouvé');
-      
-      const festival = await response.json();
+      const festival = await ApiService.getFestival(id);
       setFormData({
-        ...festival,
+        ...formData,
+        title: festival.title || '',
+        short_description: festival.short_description || '',
+        description: festival.description || '',
+        city: festival.city || '',
+        country: festival.country || 'France',
+        location: festival.location || '',
+        address: festival.address || '',
+        postal_code: festival.postal_code || '',
         start_date: festival.start_date ? festival.start_date.split('T')[0] : '',
-        end_date: festival.end_date ? festival.end_date.split('T')[0] : ''
+        end_date: festival.end_date ? festival.end_date.split('T')[0] : '',
+        registration_deadline: festival.registration_deadline ? festival.registration_deadline.split('T')[0] : '',
+        duration_days: festival.duration_days || 1,
+        max_participants: festival.max_participants || 100,
+        base_price: festival.base_price ?? 0,
+        currency: festival.currency || 'EUR',
+        is_free: Boolean(festival.is_free),
+        status: festival.status || 'pending',
+        website_url: festival.website_url || '',
+        instagram: festival.instagram || '',
       });
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
@@ -94,34 +112,31 @@ const FestivalAdminForm = () => {
     setError(null);
 
     try {
-      const formDataToSend = new FormData();
-      
-      // Ajouter tous les champs au FormData
-      Object.keys(formData).forEach(key => {
-        if (key === 'main_image' && formData[key] instanceof File) {
-          formDataToSend.append(key, formData[key]);
-        } else if (key !== 'main_image') {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
+      const toIsoDateTime = (dateStr, endOfDay = false) => {
+        if (!dateStr) return '';
+        const time = endOfDay ? '23:59:59' : '00:00:00';
+        return `${dateStr}T${time}Z`;
+      };
 
       const festivalData = {
-        name: formData.name,
+        title: formData.title,
+        short_description: formData.short_description,
         description: formData.description,
-        start_date: formData.start_date,
-        end_date: formData.end_date,
+        city: formData.city,
+        country: formData.country,
         location: formData.location,
         address: formData.address,
-        city: formData.city,
         postal_code: formData.postal_code,
-        country: formData.country,
-        max_participants: formData.max_participants,
-        price: formData.price,
-        category: formData.category,
-        level: formData.level,
-        is_featured: formData.is_featured,
+        start_date: toIsoDateTime(formData.start_date, false),
+        end_date: toIsoDateTime(formData.end_date, true),
+        registration_deadline: toIsoDateTime(formData.registration_deadline, false),
+        max_participants: Number(formData.max_participants),
+        base_price: Number(formData.base_price),
+        currency: formData.currency,
+        is_free: Boolean(formData.is_free),
         status: formData.status,
-        image: formData.image
+        website_url: formData.website_url,
+        instagram: formData.instagram,
       };
       
       await ApiService.saveFestival(festivalData, localStorage.getItem('token'), isEditing ? id : null);
@@ -293,6 +308,20 @@ const FestivalAdminForm = () => {
               />
             </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Date limite d'inscription *
+            </label>
+            <input
+              type="date"
+              name="registration_deadline"
+              value={formData.registration_deadline}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ville *
@@ -319,6 +348,20 @@ const FestivalAdminForm = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
+
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Lieu (nom de la salle / lieu principal) *
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
 
             {/* Capacité et prix */}
             <div className="lg:col-span-2">
@@ -427,8 +470,8 @@ const FestivalAdminForm = () => {
               </label>
               <input
                 type="url"
-                name="website"
-                value={formData.website}
+                name="website_url"
+                value={formData.website_url}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
@@ -547,3 +590,4 @@ const FestivalAdminForm = () => {
 };
 
 export default FestivalAdminForm;
+ 

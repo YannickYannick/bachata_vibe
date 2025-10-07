@@ -253,12 +253,19 @@ const HomePage = () => {
                 viewport={{ once: true }}
                 className="card overflow-hidden group"
               >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                <div className="relative overflow-hidden bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                  {event.image || event.main_image ? (
+                    <img
+                      src={event.image || event.main_image}
+                      alt={event.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="text-white text-center h-48 flex items-center justify-center">
+                      <div className="text-4xl mb-2">🎭</div>
+                      <p className="text-lg opacity-90">Événement</p>
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors duration-300"></div>
                   <div className="absolute top-4 right-4">
                     <div className="bg-primary-600 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -346,6 +353,9 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
+
+
 
 
 
