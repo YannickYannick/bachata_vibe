@@ -113,6 +113,7 @@ LOGGING = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://bachatavibe.com",
 ]
 
 # Configuration CSRF pour les tests
@@ -121,6 +122,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://bachatavibe.com",
 ]
 
 # Cookies en local (HTTP) – éviter les blocages CSRF
@@ -140,7 +142,7 @@ TIME_ZONE = 'Europe/Paris'
 
 # Configuration de l'API - Mode de déploiement
 # True = Mode en ligne (https://bachatavibe.com), False = Mode local (http://localhost:8000)
-USE_PRODUCTION_API = False
+USE_PRODUCTION_API = True
 
 # Nouveau: flags explicites pour le front en mode développement
 FRONTEND_DEV_MODE = not USE_PRODUCTION_API
@@ -161,6 +163,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://bachatavibe.com",
 ]
 
 if FRONTEND_DEV_MODE and FRONTEND_DEV_URL not in CORS_ALLOWED_ORIGINS:
@@ -173,6 +176,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://bachatavibe.com",
 ]
 
 # Désactiver CSRF pour les API REST (temporaire pour debug)
