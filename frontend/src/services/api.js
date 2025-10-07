@@ -31,7 +31,7 @@ class ApiService {
   // Récupérer les événements à venir
   async getUpcomingEvents() {
     try {
-      const response = await fetch(`${API_BASE_URL}/events/upcoming/`);
+      const response = await fetch(`${API_BASE_URL}/courses/courses/upcoming_events/`);
       if (!response.ok) throw new Error('Erreur lors de la récupération des événements');
       return await response.json();
     } catch (error) {
@@ -121,6 +121,21 @@ class ApiService {
     }
   }
 
+  // Récupérer un cours par ID
+  async getCourse(courseId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/courses/courses/${courseId}/`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API getCourse:', error);
+      throw error;
+    }
+  }
+
   // Récupérer les formations (catégories)
   async getFormations() {
     try {
@@ -144,6 +159,18 @@ class ApiService {
       return await response.json();
     } catch (error) {
       console.error('Erreur API getEvents:', error);
+      return [];
+    }
+  }
+
+  // Récupérer les catégories d'événements
+  async getEventCategories() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/events/categories/`);
+      if (!response.ok) throw new Error("Erreur lors de la récupération des catégories d'événements");
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API getEventCategories:', error);
       return [];
     }
   }
@@ -452,16 +479,64 @@ class ApiService {
       
       const method = eventId ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
-        method,
-        headers: {
+      console.log('Envoi des données événement:', eventData);
+      
+      // Vérifier s'il y a un fichier à uploader
+      const hasFile = eventData.main_image && eventData.main_image instanceof File;
+      
+      let headers, body;
+      
+      if (hasFile) {
+        // Utiliser FormData pour les fichiers
+        const formData = new FormData();
+        
+        // Ajouter tous les champs au FormData
+        Object.keys(eventData).forEach(key => {
+          if (eventData[key] !== null && eventData[key] !== undefined) {
+            if (key === 'main_image' && eventData[key] instanceof File) {
+              formData.append(key, eventData[key]);
+            } else if (key === 'highlights' || key === 'schedule') {
+              // Pour les champs JSON, les convertir en chaîne
+              formData.append(key, JSON.stringify(eventData[key]));
+            } else {
+              formData.append(key, eventData[key]);
+            }
+          }
+        });
+        
+        headers = {
+          'Authorization': `Token ${token}`,
+        };
+        body = formData;
+      } else {
+        // Utiliser JSON pour les données sans fichier
+        headers = {
           'Content-Type': 'application/json',
           'Authorization': `Token ${token}`,
-        },
-        body: JSON.stringify(eventData),
+        };
+        body = JSON.stringify(eventData);
+      }
+      
+      const response = await fetch(url, {
+        method,
+        headers,
+        body,
       });
       
-      if (!response.ok) throw new Error('Erreur lors de la sauvegarde de l\'événement');
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error('Impossible de parser la réponse d\'erreur:', e);
+        }
+        console.error('Erreur serveur:', errorData);
+        const error = new Error(`Erreur ${response.status}: ${response.statusText}`);
+        error.response = response;
+        error.data = errorData;
+        throw error;
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erreur API saveEvent:', error);
@@ -469,6 +544,74 @@ class ApiService {
     }
   }
 
+  // Créer ou mettre à jour un training
+  async saveTraining(trainingData, token, trainingId = null) {
+    try {
+      const url = trainingId 
+        ? `${API_BASE_URL}/trainings/trainings/${trainingId}/`
+        : `${API_BASE_URL}/trainings/trainings/`;
+      const method = trainingId ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`,
+        },
+        body: JSON.stringify(trainingData),
+      });
+      if (!response.ok) throw new Error('Erreur lors de la sauvegarde du training');
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API saveTraining:', error);
+      throw error;
+    }
+  }
+
+  // Créer ou mettre à jour une compétition
+  async saveCompetition(competitionData, token, competitionId = null) {
+    try {
+      const url = competitionId 
+        ? `${API_BASE_URL}/competitions/competitions/${competitionId}/`
+        : `${API_BASE_URL}/competitions/competitions/`;
+      const method = competitionId ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`,
+        },
+        body: JSON.stringify(competitionData),
+      });
+      if (!response.ok) throw new Error('Erreur lors de la sauvegarde de la compétition');
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API saveCompetition:', error);
+      throw error;
+    }
+  }
+
+  // Créer ou mettre à jour un artiste
+  async saveArtist(artistData, token, artistId = null) {
+    try {
+      const url = artistId 
+        ? `${API_BASE_URL}/artists/artists/${artistId}/`
+        : `${API_BASE_URL}/artists/artists/`;
+      const method = artistId ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`,
+        },
+        body: JSON.stringify(artistData),
+      });
+      if (!response.ok) throw new Error("Erreur lors de la sauvegarde de l'artiste");
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API saveArtist:', error);
+      throw error;
+    }
+  }
 
   // Créer ou mettre à jour un festival
   async saveFestival(festivalData, token, festivalId = null) {

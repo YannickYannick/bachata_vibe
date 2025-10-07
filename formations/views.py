@@ -16,7 +16,7 @@ from .models import (
 )
 from .serializers import (
     FormationCategorySerializer, FormationCategoryTreeSerializer,
-    FormationArticleListSerializer, FormationArticleDetailSerializer,
+    FormationArticleListSerializer, FormationArticleDetailSerializer, FormationArticleCreateUpdateSerializer,
     FormationFavoriteSerializer, FormationCommentSerializer,
     FormationProgressSerializer, FormationSearchSerializer,
     FormationSearchResultSerializer, FormationStatsSerializer
@@ -91,12 +91,25 @@ class FormationArticleViewSet(viewsets.ModelViewSet):
     serializer_class = FormationArticleListSerializer
     lookup_field = 'slug'
     pagination_class = PageNumberPagination
-    permission_classes = [permissions.AllowAny]  # Permettre l'accès public temporairement
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     
     def get_queryset(self):
         """Retourne les articles selon l'utilisateur et l'action"""
-        # Simplification maximale pour déboguer
-        return FormationArticle.objects.filter(status='published')
+        queryset = FormationArticle.objects.all()
+        
+        # Si l'utilisateur n'est pas connecté, seulement les articles publiés
+        if not self.request.user.is_authenticated:
+            return queryset.filter(status='published')
+        
+        # Si l'utilisateur est connecté, il peut voir ses propres articles (même brouillons)
+        # et tous les articles publiés
+        if self.request.user.is_staff:
+            return queryset  # Les admins voient tout
+        
+        return queryset.filter(
+            Q(status='published') | 
+            Q(author=self.request.user)
+        )
     
     def perform_create(self, serializer):
         """Crée un article avec l'auteur actuel"""
@@ -110,6 +123,8 @@ class FormationArticleViewSet(viewsets.ModelViewSet):
         """Retourne le bon sérialiseur selon l'action"""
         if self.action == 'retrieve':
             return FormationArticleDetailSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return FormationArticleCreateUpdateSerializer
         return FormationArticleListSerializer
     
     def retrieve(self, request, *args, **kwargs):

@@ -52,24 +52,24 @@ const Navigation = () => {
       'fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-lg border-b border-gray-200'
     }>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16 lg:h-20">
+        <div className="flex justify-between items-center h-16 lg:h-20 px-2">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">B</span>
             </div>
             <span className={`font-bold text-xl transition-colors duration-300 text-gray-900`}>
-              BachataSite
+              BachataVibe
             </span>
           </Link>
 
           {/* Navigation desktop */}
-          <div className="hidden lg:flex lg:items-center lg:space-x-8">
+          <div className="hidden lg:flex lg:items-center lg:space-x-6">
             {navigationItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                   item.current
                     ? 'bg-purple-100 text-purple-700'
                     : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'
@@ -86,7 +86,7 @@ const Navigation = () => {
                 href={`${getApiUrl().replace('/api', '')}/admin/`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-2 rounded-md text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 transition-colors flex items-center"
+                className="px-4 py-2 rounded-md text-sm font-medium text-red-700 hover:text-red-800 hover:bg-red-50 transition-colors flex items-center ml-2"
               >
                 <span className="mr-2">👑</span>
                 Admin
@@ -95,7 +95,7 @@ const Navigation = () => {
           </div>
 
           {/* Right side actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Search */}
             <button className={`p-2 rounded-lg transition-colors duration-200 text-gray-600 hover:text-purple-600 hover:bg-purple-50`}>
               <Search className="w-5 h-5" />

@@ -250,12 +250,19 @@ const EventsPage = () => {
               className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
             >
               {/* Image de l'événement */}
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+                {event.image || event.main_image ? (
+                  <img
+                    src={event.image || event.main_image}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-white text-center">
+                    <div className="text-4xl mb-2">🎭</div>
+                    <p className="text-lg opacity-90">Événement</p>
+                  </div>
+                )}
                 {event.featured && (
                   <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold">
                     <Star className="w-4 h-4 inline mr-1" />

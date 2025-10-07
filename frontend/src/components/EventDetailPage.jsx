@@ -197,12 +197,19 @@ const EventDetailPage = () => {
           className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8"
         >
           {/* Image et badge en vedette */}
-          <div className="relative h-96">
-            <img
-              src={event.image}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
+          <div className="relative h-96 bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
+            {event.image || event.main_image ? (
+              <img
+                src={event.image || event.main_image}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="text-white text-center">
+                <div className="text-6xl mb-4">🎭</div>
+                <p className="text-2xl opacity-90">Événement</p>
+              </div>
+            )}
             {event.featured && (
               <div className="absolute top-6 right-6 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-full text-sm font-semibold">
                 <Star className="w-4 h-4 inline mr-2" />

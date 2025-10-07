@@ -144,6 +144,71 @@ class FormationArticleListSerializer(serializers.ModelSerializer):
         return None
 
 
+class FormationArticleCreateUpdateSerializer(serializers.ModelSerializer):
+    """Sérialiseur pour créer et modifier les articles de formation"""
+    author = UserSerializer(read_only=True)
+    category_id = serializers.IntegerField(write_only=True)
+    
+    class Meta:
+        model = FormationArticle
+        fields = [
+            'id', 'title', 'slug', 'content', 'excerpt', 'author', 'category_id',
+            'level', 'status', 'meta_description', 'reading_time',
+            'related_courses', 'related_festivals', 'related_events',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'slug', 'created_at', 'updated_at']
+    
+    def create(self, validated_data):
+        """Crée un nouvel article"""
+        category_id = validated_data.pop('category_id')
+        related_courses = validated_data.pop('related_courses', [])
+        related_festivals = validated_data.pop('related_festivals', [])
+        related_events = validated_data.pop('related_events', [])
+        
+        # Récupérer la catégorie
+        from .models import FormationCategory
+        category = FormationCategory.objects.get(id=category_id)
+        validated_data['category'] = category
+        
+        article = FormationArticle.objects.create(**validated_data)
+        
+        if related_courses:
+            article.related_courses.set(related_courses)
+        if related_festivals:
+            article.related_festivals.set(related_festivals)
+        if related_events:
+            article.related_events.set(related_events)
+            
+        return article
+    
+    def update(self, instance, validated_data):
+        """Met à jour un article existant"""
+        category_id = validated_data.pop('category_id', None)
+        related_courses = validated_data.pop('related_courses', None)
+        related_festivals = validated_data.pop('related_festivals', None)
+        related_events = validated_data.pop('related_events', None)
+        
+        # Mettre à jour la catégorie si fournie
+        if category_id is not None:
+            from .models import FormationCategory
+            category = FormationCategory.objects.get(id=category_id)
+            instance.category = category
+        
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        if related_courses is not None:
+            instance.related_courses.set(related_courses)
+        if related_festivals is not None:
+            instance.related_festivals.set(related_festivals)
+        if related_events is not None:
+            instance.related_events.set(related_events)
+            
+        return instance
+
+
 class FormationArticleDetailSerializer(serializers.ModelSerializer):
     """Sérialiseur détaillé pour les articles de formation"""
     author = UserSerializer(read_only=True)
@@ -200,7 +265,7 @@ class FormationArticleDetailSerializer(serializers.ModelSerializer):
         """Vérifie si l'article est dans les favoris de l'utilisateur"""
         request = self.context.get('request')
         if request and request.user.is_authenticated:
-            return obj.favorites.filter(user=request.user, is_active=True).exists()
+            return obj.formationfavorite_set.filter(user=request.user, is_active=True).exists()
         return False
     
     def get_user_progress(self, obj):
@@ -233,6 +298,20 @@ class FormationArticleDetailSerializer(serializers.ModelSerializer):
             except FormationProgress.DoesNotExist:
                 return ""
         return ""
+    
+    def create(self, validated_data):
+        """Crée un article de formation"""
+        # Convertir category_id en category si fourni
+        if 'category_id' in validated_data:
+            validated_data['category_id'] = validated_data.pop('category_id')
+        return super().create(validated_data)
+    
+    def update(self, instance, validated_data):
+        """Met à jour un article de formation"""
+        # Convertir category_id en category si fourni
+        if 'category_id' in validated_data:
+            validated_data['category_id'] = validated_data.pop('category_id')
+        return super().update(instance, validated_data)
 
 
 class FormationFavoriteSerializer(serializers.ModelSerializer):
@@ -386,3 +465,387 @@ class FormationStatsSerializer(serializers.Serializer):
     articles_by_category = serializers.DictField()
     most_popular_articles = FormationArticleListSerializer(many=True)
     recent_articles = FormationArticleListSerializer(many=True)
+
+    
+
+    def get_is_favorited(self, obj):
+
+        """Vérifie si l'article est dans les favoris de l'utilisateur"""
+
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+
+            return obj.favorites.filter(user=request.user, is_active=True).exists()
+
+        return False
+
+    
+
+    def get_user_progress(self, obj):
+
+        """Retourne la progression de l'utilisateur sur cet article"""
+
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+
+            try:
+
+                progress = obj.formationprogress_set.get(user=request.user)
+
+                return {
+
+                    'progress_percentage': progress.progress_percentage,
+
+                    'is_started': progress.is_started,
+
+                    'is_completed': progress.is_completed,
+
+                    'started_at': progress.started_at,
+
+                    'completed_at': progress.completed_at,
+
+                    'last_read_at': progress.last_read_at,
+
+                    'total_reading_time': progress.total_reading_time,
+
+                    'difficulty_rating': progress.difficulty_rating
+
+                }
+
+            except FormationProgress.DoesNotExist:
+
+                return None
+
+        return None
+
+    
+
+    def get_user_notes(self, obj):
+
+        """Retourne les notes personnelles de l'utilisateur"""
+
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+
+            try:
+
+                progress = obj.formationprogress_set.get(user=request.user)
+
+                return progress.personal_notes
+
+            except FormationProgress.DoesNotExist:
+
+                return ""
+
+        return ""
+
+
+
+
+
+class FormationFavoriteSerializer(serializers.ModelSerializer):
+
+    """Sérialiseur pour les favoris de formation"""
+
+    article = FormationArticleListSerializer(read_only=True)
+
+    article_id = serializers.IntegerField(write_only=True)
+
+    
+
+    class Meta:
+
+        model = FormationFavorite
+
+        fields = ['id', 'article', 'article_id', 'is_active', 'notes', 'created_at']
+
+        read_only_fields = ['id', 'created_at']
+
+    
+
+    def create(self, validated_data):
+
+        """Crée ou met à jour un favori"""
+
+        user = self.context['request'].user
+
+        article_id = validated_data.pop('article_id')
+
+        
+
+        favorite, created = FormationFavorite.objects.get_or_create(
+
+            user=user,
+
+            article_id=article_id,
+
+            defaults=validated_data
+
+        )
+
+        
+
+        if not created:
+
+            # Mise à jour si le favori existe déjà
+
+            for attr, value in validated_data.items():
+
+                setattr(favorite, attr, value)
+
+            favorite.save()
+
+        
+
+        return favorite
+
+
+
+
+
+class FormationCommentSerializer(serializers.ModelSerializer):
+
+    """Sérialiseur pour les commentaires de formation"""
+
+    author = UserSerializer(read_only=True)
+
+    replies = serializers.SerializerMethodField()
+
+    replies_count = serializers.SerializerMethodField()
+
+    can_moderate = serializers.SerializerMethodField()
+
+    
+
+    class Meta:
+
+        model = FormationComment
+
+        fields = [
+
+            'id', 'article', 'author', 'parent', 'content', 'is_approved',
+
+            'is_active', 'replies', 'replies_count', 'can_moderate',
+
+            'created_at', 'updated_at'
+
+        ]
+
+        read_only_fields = ['id', 'author', 'is_approved', 'created_at', 'updated_at']
+
+    
+
+    def get_replies(self, obj):
+
+        """Retourne les réponses approuvées"""
+
+        replies = obj.replies.filter(is_approved=True, is_active=True).order_by('created_at')
+
+        return FormationCommentSerializer(replies, many=True, context=self.context).data
+
+    
+
+    def get_replies_count(self, obj):
+
+        """Retourne le nombre de réponses"""
+
+        return obj.get_replies_count()
+
+    
+
+    def get_can_moderate(self, obj):
+
+        """Vérifie si l'utilisateur peut modérer ce commentaire"""
+
+        request = self.context.get('request')
+
+        if request and request.user.is_authenticated:
+
+            return request.user.is_staff or request.user == obj.author
+
+        return False
+
+    
+
+    def create(self, validated_data):
+
+        """Crée un commentaire avec l'auteur actuel"""
+
+        validated_data['author'] = self.context['request'].user
+
+        return super().create(validated_data)
+
+
+
+
+
+class FormationProgressSerializer(serializers.ModelSerializer):
+
+    """Sérialiseur pour la progression de formation"""
+
+    article = FormationArticleListSerializer(read_only=True)
+
+    article_id = serializers.IntegerField(write_only=True)
+
+    time_spent_formatted = serializers.SerializerMethodField()
+
+    
+
+    class Meta:
+
+        model = FormationProgress
+
+        fields = [
+
+            'id', 'article', 'article_id', 'is_started', 'is_completed',
+
+            'progress_percentage', 'started_at', 'completed_at', 'last_read_at',
+
+            'total_reading_time', 'time_spent_formatted', 'personal_notes',
+
+            'difficulty_rating'
+
+        ]
+
+        read_only_fields = ['id', 'started_at', 'completed_at', 'last_read_at']
+
+    
+
+    def get_time_spent_formatted(self, obj):
+
+        """Retourne le temps passé formaté"""
+
+        return obj.get_time_spent_formatted()
+
+    
+
+    def create(self, validated_data):
+
+        """Crée ou met à jour une progression"""
+
+        user = self.context['request'].user
+
+        article_id = validated_data.pop('article_id')
+
+        
+
+        progress, created = FormationProgress.objects.get_or_create(
+
+            user=user,
+
+            article_id=article_id,
+
+            defaults=validated_data
+
+        )
+
+        
+
+        if not created:
+
+            # Mise à jour si la progression existe déjà
+
+            for attr, value in validated_data.items():
+
+                setattr(progress, attr, value)
+
+            progress.save()
+
+        
+
+        return progress
+
+
+
+
+
+class FormationSearchSerializer(serializers.Serializer):
+
+    """Sérialiseur pour la recherche de formation"""
+
+    query = serializers.CharField(max_length=500, required=False)
+
+    category = serializers.CharField(max_length=100, required=False)
+
+    level = serializers.ChoiceField(choices=FormationArticle.LEVEL_CHOICES, required=False)
+
+    author = serializers.CharField(max_length=100, required=False)
+
+    sort_by = serializers.ChoiceField(
+
+        choices=[
+
+            ('relevance', 'Pertinence'),
+
+            ('date', 'Date'),
+
+            ('popularity', 'Popularité'),
+
+            ('level', 'Niveau'),
+
+            ('reading_time', 'Temps de lecture')
+
+        ],
+
+        default='relevance',
+
+        required=False
+
+    )
+
+    page = serializers.IntegerField(min_value=1, default=1, required=False)
+
+    page_size = serializers.IntegerField(min_value=1, max_value=50, default=10, required=False)
+
+
+
+
+
+class FormationSearchResultSerializer(serializers.Serializer):
+
+    """Sérialiseur pour les résultats de recherche"""
+
+    articles = FormationArticleListSerializer(many=True)
+
+    total_count = serializers.IntegerField()
+
+    page = serializers.IntegerField()
+
+    page_size = serializers.IntegerField()
+
+    total_pages = serializers.IntegerField()
+
+    query = serializers.CharField()
+
+    filters_applied = serializers.DictField()
+
+
+
+
+
+class FormationStatsSerializer(serializers.Serializer):
+
+    """Sérialiseur pour les statistiques de formation"""
+
+    total_articles = serializers.IntegerField()
+
+    total_categories = serializers.IntegerField()
+
+    total_views = serializers.IntegerField()
+
+    total_favorites = serializers.IntegerField()
+
+    total_comments = serializers.IntegerField()
+
+    articles_by_level = serializers.DictField()
+
+    articles_by_category = serializers.DictField()
+
+    most_popular_articles = FormationArticleListSerializer(many=True)
+
+    recent_articles = FormationArticleListSerializer(many=True)
+
+

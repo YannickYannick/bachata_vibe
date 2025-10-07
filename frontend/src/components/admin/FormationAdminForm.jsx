@@ -22,7 +22,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const FormationAdminForm = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -62,11 +62,8 @@ const FormationAdminForm = () => {
 
   const loadCategories = async () => {
     try {
-      const response = await ApiService.getFormations();
-      if (response.ok) {
-        const data = await response.json();
-        setCategories(data.results || data);
-      }
+      const data = await ApiService.getFormations();
+      setCategories(data.results || data);
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
     }
@@ -75,25 +72,16 @@ const FormationAdminForm = () => {
   const loadRelatedData = async () => {
     try {
       // Charger les cours
-      const coursesResponse = await ApiService.getCourses();
-      if (coursesResponse.ok) {
-        const coursesData = await coursesResponse.json();
-        setRelatedCourses(coursesData.results || coursesData);
-      }
+      const coursesData = await ApiService.getCourses();
+      setRelatedCourses(coursesData.results || coursesData);
 
       // Charger les festivals
-      const festivalsResponse = await ApiService.getFestivals();
-      if (festivalsResponse.ok) {
-        const festivalsData = await festivalsResponse.json();
-        setRelatedFestivals(festivalsData.results || festivalsData);
-      }
+      const festivalsData = await ApiService.getFestivals();
+      setRelatedFestivals(festivalsData.results || festivalsData);
 
       // Charger les événements
-      const eventsResponse = await ApiService.getEvents();
-      if (eventsResponse.ok) {
-        const eventsData = await eventsResponse.json();
-        setRelatedEvents(eventsData.results || eventsData);
-      }
+      const eventsData = await ApiService.getEvents();
+      setRelatedEvents(eventsData.results || eventsData);
     } catch (error) {
       console.error('Erreur lors du chargement des données liées:', error);
     }
@@ -102,15 +90,13 @@ const FormationAdminForm = () => {
   const loadArticle = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.getFormations();
-      if (response.ok) {
-        const article = await response.json();
+      const article = await ApiService.getFormationArticle(slug);
         setFormData({
           title: article.title || '',
           slug: article.slug || '',
           content: article.content || '',
           excerpt: article.excerpt || '',
-          category: article.category?.id || '',
+          category_id: article.category?.id || '',
           level: article.level || 'beginner',
           status: article.status || 'draft',
           meta_description: article.meta_description || '',
@@ -123,9 +109,7 @@ const FormationAdminForm = () => {
         if (article.media_files) {
           setMediaFiles(article.media_files);
         }
-      } else {
-        throw new Error('Article non trouvé');
-      }
+      
     } catch (error) {
       console.error('Erreur:', error);
       alert('Erreur lors du chargement de l\'article');
@@ -205,7 +189,7 @@ const FormationAdminForm = () => {
     
     if (!formData.title.trim()) newErrors.title = 'Le titre est requis';
     if (!formData.content.trim()) newErrors.content = 'Le contenu est requis';
-    if (!formData.category) newErrors.category = 'La catégorie est requise';
+    if (!formData.category_id) newErrors.category_id = 'La catégorie est requise';
     if (formData.reading_time < 1) newErrors.reading_time = 'Le temps de lecture doit être positif';
     
     setErrors(newErrors);
@@ -220,44 +204,22 @@ const FormationAdminForm = () => {
     try {
       setSaving(true);
       
-      const formDataToSend = new FormData();
-      
-      // Données de base
-      Object.keys(formData).forEach(key => {
-        if (key === 'related_courses' || key === 'related_festivals' || key === 'related_events') {
-          formData[key].forEach(id => {
-            formDataToSend.append(key, id);
-          });
-        } else {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-      
-      // Fichiers média
-      mediaFiles.forEach((media, index) => {
-        if (media.file instanceof File) {
-          formDataToSend.append(`media_files[${index}][file]`, media.file);
-          formDataToSend.append(`media_files[${index}][title]`, media.title);
-          formDataToSend.append(`media_files[${index}][description]`, media.description);
-          formDataToSend.append(`media_files[${index}][file_type]`, media.file_type);
-          formDataToSend.append(`media_files[${index}][order]`, media.order);
-        }
-      });
-      
       const articleData = {
         title: formData.title,
+        slug: formData.slug,
         content: formData.content,
         excerpt: formData.excerpt,
-        category: formData.category,
+        category_id: formData.category_id,
         level: formData.level,
-        tags: formData.tags,
-        is_published: formData.is_published,
-        is_featured: formData.is_featured,
+        status: formData.status,
+        meta_description: formData.meta_description,
         reading_time: formData.reading_time,
-        image: formData.image
+        related_courses: formData.related_courses,
+        related_festivals: formData.related_festivals,
+        related_events: formData.related_events
       };
       
-      await ApiService.saveFormationArticle(articleData, localStorage.getItem('token'), isEditing ? slug : null);
+      await ApiService.saveFormationArticle(articleData, token, isEditing ? slug : null);
       
       alert(isEditing ? 'Article modifié avec succès !' : 'Article créé avec succès !');
       navigate('/formations');
@@ -357,11 +319,11 @@ const FormationAdminForm = () => {
                   Catégorie *
                 </label>
                 <select
-                  name="category"
-                  value={formData.category}
+                  name="category_id"
+                  value={formData.category_id}
                   onChange={handleInputChange}
                   className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 ${
-                    errors.category ? 'border-red-500' : 'border-gray-300'
+                    errors.category_id ? 'border-red-500' : 'border-gray-300'
                   }`}
                 >
                   <option value="">Sélectionner une catégorie</option>
@@ -371,8 +333,8 @@ const FormationAdminForm = () => {
                     </option>
                   ))}
                 </select>
-                {errors.category && (
-                  <p className="mt-1 text-sm text-red-600">{errors.category}</p>
+                {errors.category_id && (
+                  <p className="mt-1 text-sm text-red-600">{errors.category_id}</p>
                 )}
               </div>
 

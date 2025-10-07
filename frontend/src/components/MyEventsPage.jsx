@@ -283,7 +283,7 @@ const MyEventsPage = () => {
                   {/* Image de l'événement */}
                   <div className="relative h-48 overflow-hidden">
                     <img
-                      src={event.image}
+                      src={event.image || event.main_image}
                       alt={event.title}
                       className="w-full h-full object-cover"
                     />
@@ -392,7 +392,7 @@ const MyEventsPage = () => {
                   {/* Image de l'événement */}
                   <div className="relative h-48 overflow-hidden">
                     <img
-                      src={event.image}
+                      src={event.image || event.main_image}
                       alt={event.title}
                       className="w-full h-full object-cover"
                     />

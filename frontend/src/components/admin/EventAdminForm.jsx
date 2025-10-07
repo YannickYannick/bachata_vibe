@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ApiService from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 import { 
   Save, 
   X, 
@@ -17,6 +18,7 @@ import {
 const EventAdminForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { token } = useAuth();
   const isEditing = Boolean(id);
   
   const [categories, setCategories] = useState([]);
@@ -46,7 +48,7 @@ const EventAdminForm = () => {
     prerequisites: '',
     instructor: '',
     instructor_bio: '',
-    main_image: null,
+    main_image: '',
     highlights: '',
     schedule: '',
     materials_needed: '',
@@ -67,30 +69,48 @@ const EventAdminForm = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await ApiService.getEvents();
-      if (response.ok) {
-        const data = await response.json();
+      const data = await ApiService.getEventCategories();
+      // S'assurer que data est un tableau
+      if (Array.isArray(data)) {
         setCategories(data);
+      } else if (data && data.results && Array.isArray(data.results)) {
+        // Si l'API retourne un objet avec une propriété results
+        setCategories(data.results);
+      } else {
+        console.warn('Format de données inattendu pour les catégories:', data);
+        setCategories([]);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
+      setCategories([]);
     }
   };
 
   const fetchEvent = async () => {
     try {
       setLoading(true);
-      const response = await ApiService.getEvents();
-      if (!response.ok) throw new Error('Événement non trouvé');
+      const event = await ApiService.getEvent(id);
       
-      const event = await response.json();
+      // Convertir les dates ISO en format datetime-local
+      const toDateTimeLocal = (isoString) => {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      };
+      
       setFormData({
         ...event,
-        start_date: event.start_date ? event.start_date.split('T')[0] : '',
-        end_date: event.end_date ? event.end_date.split('T')[0] : '',
-        registration_deadline: event.registration_deadline ? event.registration_deadline.split('T')[0] : '',
-        early_bird_deadline: event.early_bird_deadline ? event.early_bird_deadline.split('T')[0] : '',
-        category: event.category?.id || ''
+        start_date: toDateTimeLocal(event.start_date),
+        end_date: toDateTimeLocal(event.end_date),
+        registration_deadline: toDateTimeLocal(event.registration_deadline),
+        early_bird_deadline: toDateTimeLocal(event.early_bird_deadline),
+        category: event.category?.id || '',
+        main_image: event.main_image || ''
       });
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
@@ -124,43 +144,155 @@ const EventAdminForm = () => {
     setError(null);
 
     try {
-      const formDataToSend = new FormData();
+      // Convertir les dates au format ISO pour les champs datetime-local
+      const toIsoDateTime = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toISOString();
+      };
+
+      // Validation des données avant envoi
+      if (!formData.title || !formData.description || !formData.category) {
+        setError('Veuillez remplir tous les champs obligatoires');
+        return;
+      }
+
+      // Validation supplémentaire pour éviter les données corrompues
+      if (typeof formData.title !== 'string' || formData.title.length > 500) {
+        setError('Le titre est invalide');
+        return;
+      }
+
+      if (typeof formData.description !== 'string' || formData.description.length > 1000) {
+        setError('La description est invalide');
+        return;
+      }
+
+      // Vérifier que les champs optionnels sont des chaînes ou null/undefined
+      const stringFields = ['long_description', 'location', 'address', 'city', 'postal_code', 'country', 
+                           'instructor', 'instructor_bio', 'prerequisites', 'highlights', 'schedule', 
+                           'materials_needed', 'website', 'instagram', 'facebook'];
       
-      // Ajouter tous les champs au FormData
-      Object.keys(formData).forEach(key => {
-        if (key === 'main_image' && formData[key] instanceof File) {
-          formDataToSend.append(key, formData[key]);
-        } else if (key !== 'main_image' && formData[key] !== '') {
-          formDataToSend.append(key, formData[key]);
+      for (const field of stringFields) {
+        if (formData[field] !== null && formData[field] !== undefined && typeof formData[field] !== 'string') {
+          console.warn(`Champ ${field} n'est pas une chaîne:`, typeof formData[field], formData[field]);
+          // Convertir en chaîne si ce n'est pas déjà le cas
+          formData[field] = String(formData[field]);
         }
-      });
+      }
+
+      // Fonction utilitaire pour nettoyer les chaînes
+      const cleanString = (value) => {
+        if (typeof value === 'string') {
+          return value.trim();
+        }
+        if (value === null || value === undefined) {
+          return '';
+        }
+        if (Array.isArray(value)) {
+          // Pour les tableaux, joindre avec des virgules
+          return value.map(item => {
+            if (typeof item === 'object' && item !== null) {
+              // Pour les objets, extraire les propriétés pertinentes
+              return item.name || item.title || item.time || JSON.stringify(item);
+            }
+            return String(item);
+          }).join(',');
+        }
+        if (typeof value === 'object' && value !== null) {
+          // Pour les objets, essayer d'extraire des propriétés utiles
+          return value.name || value.title || value.time || JSON.stringify(value);
+        }
+        return String(value).trim();
+      };
+
+      // Nettoyer les données avant envoi
+      const cleanFormData = {
+        ...formData,
+        title: cleanString(formData.title),
+        description: cleanString(formData.description),
+        long_description: cleanString(formData.long_description) || cleanString(formData.description),
+        location: cleanString(formData.location),
+        address: cleanString(formData.address),
+        city: cleanString(formData.city),
+        postal_code: cleanString(formData.postal_code),
+        country: cleanString(formData.country) || 'France',
+        instructor: cleanString(formData.instructor),
+        instructor_bio: cleanString(formData.instructor_bio),
+        prerequisites: cleanString(formData.prerequisites),
+        materials_needed: cleanString(formData.materials_needed),
+        website: cleanString(formData.website),
+        instagram: cleanString(formData.instagram),
+        facebook: cleanString(formData.facebook),
+        // Garder highlights et schedule comme tableaux pour le backend
+        highlights: Array.isArray(formData.highlights) ? formData.highlights : [],
+        schedule: Array.isArray(formData.schedule) ? formData.schedule : []
+      };
 
       const eventData = {
-        title: formData.title,
-        description: formData.description,
-        date: formData.date,
-        time: formData.time,
-        location: formData.location,
-        address: formData.address,
-        city: formData.city,
-        postal_code: formData.postal_code,
-        country: formData.country,
-        max_participants: formData.max_participants,
-        price: formData.price,
-        category: formData.category,
-        level: formData.level,
-        is_featured: formData.is_featured,
-        status: formData.status,
-        image: formData.image
+        title: cleanFormData.title,
+        slug: cleanFormData.slug || cleanFormData.title.toLowerCase().replace(/\s+/g, '-'),
+        description: cleanFormData.description,
+        long_description: cleanFormData.long_description,
+        category: cleanFormData.category, // ID de la catégorie
+        status: cleanFormData.status,
+        featured: cleanFormData.featured,
+        start_date: toIsoDateTime(cleanFormData.start_date),
+        end_date: toIsoDateTime(cleanFormData.end_date),
+        registration_deadline: toIsoDateTime(cleanFormData.registration_deadline),
+        location: cleanFormData.location,
+        address: cleanFormData.address,
+        city: cleanFormData.city,
+        postal_code: cleanFormData.postal_code,
+        country: cleanFormData.country,
+        capacity: Number(cleanFormData.capacity) || 50,
+        min_participants: Number(cleanFormData.min_participants) || 1,
+        price: Number(cleanFormData.price) || 0,
+        currency: cleanFormData.currency || 'EUR',
+        early_bird_price: cleanFormData.early_bird_price ? Number(cleanFormData.early_bird_price) : null,
+        early_bird_deadline: cleanFormData.early_bird_deadline ? toIsoDateTime(cleanFormData.early_bird_deadline) : null,
+        difficulty: cleanFormData.difficulty || 'all_levels',
+        prerequisites: cleanFormData.prerequisites,
+        instructor: cleanFormData.instructor,
+        instructor_bio: cleanFormData.instructor_bio,
+        highlights: cleanFormData.highlights,
+        schedule: cleanFormData.schedule,
+        materials_needed: cleanFormData.materials_needed,
+        website: cleanFormData.website,
+        instagram: cleanFormData.instagram,
+        facebook: cleanFormData.facebook
       };
+
+      // Ne pas inclure main_image si c'est vide ou null
+      if (cleanFormData.main_image && cleanFormData.main_image !== '') {
+        eventData.main_image = cleanFormData.main_image;
+      }
       
-      await ApiService.saveEvent(eventData, localStorage.getItem('token'), isEditing ? id : null);
+      await ApiService.saveEvent(eventData, token, isEditing ? id : null);
 
       // Rediriger vers la liste des événements
       navigate('/events');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      setError(error.message);
+      
+      // Essayer de récupérer les détails de l'erreur du serveur
+      let errorMessage = error.message;
+      
+      if (error.data) {
+        const errorData = error.data;
+        if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (typeof errorData === 'object') {
+          // Afficher les erreurs de validation
+          const validationErrors = Object.entries(errorData)
+            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .join('\n');
+          errorMessage = `Erreurs de validation:\n${validationErrors}`;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -202,9 +334,22 @@ const EventAdminForm = () => {
           onSubmit={handleSubmit}
           className="bg-white rounded-xl shadow-sm border border-gray-100 p-8"
         >
+          {/* Affichage des erreurs */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">{error}</p>
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <X className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">
+                    Erreur lors de la sauvegarde
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700 whitespace-pre-line">
+                    {error}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -257,7 +402,7 @@ const EventAdminForm = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 <option value="">Sélectionner une catégorie</option>
-                {categories.map(category => (
+                {Array.isArray(categories) && categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
                   </option>
