@@ -2,15 +2,13 @@ import os
 import sys
 
 # Ajoute le répertoire du projet au chemin d'accès
-project_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_dir)
+sys.path.insert(0, os.path.dirname(__file__))
+
+# Ajoute le chemin vers le répertoire du projet Django
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'bachata_site'))
 
 # Configuration de l'environnement Django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bachata_site.settings_production')
+os.environ['DJANGO_SETTINGS_MODULE'] = 'bachata_site.settings_test'
 
 # Import de l'application WSGI
-import django
-from django.core.wsgi import get_wsgi_application
-
-django.setup()
-application = get_wsgi_application()
+from bachata_site.wsgi import application
