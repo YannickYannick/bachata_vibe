@@ -13,6 +13,11 @@ export const getApiUrl = () => {
     return process.env.REACT_APP_API_URL;
   }
   
+  // Mode local - forcer l'utilisation du port 8000 pour l'API
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://127.0.0.1:8000/api';
+  }
+  
   // Mode local par défaut - utiliser la même origine que le frontend
   return `${window.location.protocol}//${window.location.host}/api`;
 };

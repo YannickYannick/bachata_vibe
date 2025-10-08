@@ -496,7 +496,7 @@ class ApiService {
             if (key === 'main_image' && eventData[key] instanceof File) {
               formData.append(key, eventData[key]);
             } else if (key === 'highlights' || key === 'schedule') {
-              // Pour les champs JSON, les convertir en chaîne
+              // Pour les champs JSON, les envoyer comme chaîne JSON
               formData.append(key, JSON.stringify(eventData[key]));
             } else {
               formData.append(key, eventData[key]);

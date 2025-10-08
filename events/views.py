@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count, Avg, Sum
 from django.utils import timezone
@@ -20,6 +20,7 @@ class EventCategoryViewSet(viewsets.ReadOnlyModelViewSet):
     
     queryset = EventCategory.objects.all()
     serializer_class = EventCategorySerializer
+    permission_classes = [AllowAny]  # Permettre l'accès sans authentification
     lookup_field = 'slug'
     
     @action(detail=True, methods=['get'])
