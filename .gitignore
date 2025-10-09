@@ -9,6 +9,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 build/
+!frontend/build/
 develop-eggs/
 dist/
 downloads/
@@ -141,7 +142,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# React build
 
 
 # IDE
