@@ -21,12 +21,12 @@ class CompetitionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'slug', 'description', 'short_description',
             'category', 'status', 'creator', 'approved_by', 'approved_at',
-            'start_date', 'end_date', 'registration_deadline', 'schedule',
+            'start_date', 'end_date', 'registration_deadline',
             'location', 'address', 'city', 'postal_code', 'country',
             'prize_pool', 'currency', 'prize_distribution', 'max_participants',
             'current_participants', 'registration_fee', 'main_image',
             'gallery', 'video_url', 'rules', 'judging_criteria',
-            'categories', 'age_groups', 'judges', 'tags',
+            'age_groups', 'judges', 'tags', 'website_url', 'instagram',
             'created_at', 'updated_at'
         ]
         read_only_fields = [

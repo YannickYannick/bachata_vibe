@@ -37,11 +37,18 @@ class FestivalViewSet(viewsets.ModelViewSet):
         """
         obj = super().get_object()
         
-        # Pour les opérations de modification, vérifier que l'utilisateur est le créateur
+        # Pour les opérations de modification, vérifier que l'utilisateur est le créateur OU un admin
         if self.action in ['update', 'partial_update', 'destroy']:
-            if obj.creator != self.request.user:
+            # Debug: afficher les informations de l'utilisateur
+            print(f"DEBUG: User: {self.request.user}")
+            print(f"DEBUG: Is authenticated: {self.request.user.is_authenticated}")
+            print(f"DEBUG: Is staff: {self.request.user.is_staff}")
+            print(f"DEBUG: Festival creator: {obj.creator}")
+            print(f"DEBUG: User == creator: {obj.creator == self.request.user}")
+            
+            if obj.creator != self.request.user and not (self.request.user.is_authenticated and self.request.user.is_staff):
                 from rest_framework.exceptions import PermissionDenied
-                raise PermissionDenied("Vous ne pouvez modifier que vos propres festivals.")
+                raise PermissionDenied("Vous ne pouvez modifier que vos propres festivals ou être administrateur.")
         
         return obj
     
