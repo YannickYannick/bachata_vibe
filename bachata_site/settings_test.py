@@ -8,7 +8,7 @@ from pathlib import Path
 from .settings import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Hosts autorisés pour les tests
 ALLOWED_HOSTS = [
