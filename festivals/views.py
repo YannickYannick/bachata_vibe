@@ -144,6 +144,20 @@ class FestivalViewSet(viewsets.ModelViewSet):
             'created': created_serializer.data,
             'enrolled': enrolled_serializer.data
         })
+    
+    @action(detail=False, methods=['get'])
+    def admin_all(self, request):
+        """Tous les festivals pour les administrateurs"""
+        if not request.user.is_authenticated or not request.user.is_staff:
+            return Response(
+                {"error": "Permissions d'administrateur requises"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # Retourner tous les festivals sans filtrage
+        all_festivals = Festival.objects.all().order_by('-created_at')
+        serializer = FestivalSerializer(all_festivals, many=True, context={'request': request})
+        return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def enroll(self, request, pk=None):

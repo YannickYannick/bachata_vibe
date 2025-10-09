@@ -255,11 +255,11 @@ const HomePage = () => {
               >
                 <div className="relative overflow-hidden bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center">
                   {event.image || event.main_image ? (
-                    <img
+                  <img
                       src={event.image || event.main_image}
-                      alt={event.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
+                    alt={event.title}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                   ) : (
                     <div className="text-white text-center h-48 flex items-center justify-center">
                       <div className="text-4xl mb-2">🎭</div>

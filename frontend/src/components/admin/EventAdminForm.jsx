@@ -72,7 +72,7 @@ const EventAdminForm = () => {
       const data = await ApiService.getEventCategories();
       // S'assurer que data est un tableau
       if (Array.isArray(data)) {
-        setCategories(data);
+      setCategories(data);
       } else if (data && data.results && Array.isArray(data.results)) {
         // Si l'API retourne un objet avec une propriété results
         setCategories(data.results);
