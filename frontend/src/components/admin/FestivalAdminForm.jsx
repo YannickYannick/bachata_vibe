@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 import ApiService from '../../services/api';
 import { 
   Save, 
@@ -17,6 +18,7 @@ const FestivalAdminForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
+  const { token } = useAuth();
   
   const [formData, setFormData] = useState({
     title: '',
@@ -111,6 +113,12 @@ const FestivalAdminForm = () => {
     setLoading(true);
     setError(null);
 
+    if (!token) {
+      setError('Vous devez être connecté pour sauvegarder un festival');
+      setLoading(false);
+      return;
+    }
+
     try {
       const toIsoDateTime = (dateStr, endOfDay = false) => {
         if (!dateStr) return '';
@@ -139,7 +147,7 @@ const FestivalAdminForm = () => {
         instagram: formData.instagram,
       };
       
-      await ApiService.saveFestival(festivalData, localStorage.getItem('token'), isEditing ? id : null);
+      await ApiService.saveFestival(festivalData, token, isEditing ? id : null);
 
       // Rediriger vers la liste des festivals
       navigate('/festivals');

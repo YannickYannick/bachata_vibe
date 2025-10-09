@@ -1,9 +1,10 @@
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from django.db import models
 from .models import Festival, FestivalEnrollment
 from .serializers import FestivalSerializer, FestivalEnrollmentSerializer
 
@@ -19,6 +20,30 @@ class FestivalViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'description', 'location', 'city']
     ordering_fields = ['start_date', 'end_date', 'price', 'created_at']
     ordering = ['-start_date']
+    
+    def get_permissions(self):
+        """
+        Permissions personnalisées selon l'action
+        """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [IsAuthenticatedOrReadOnly]
+        return [permission() for permission in permission_classes]
+    
+    def get_object(self):
+        """
+        Vérifier que l'utilisateur peut accéder à l'objet
+        """
+        obj = super().get_object()
+        
+        # Pour les opérations de modification, vérifier que l'utilisateur est le créateur
+        if self.action in ['update', 'partial_update', 'destroy']:
+            if obj.creator != self.request.user:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Vous ne pouvez modifier que vos propres festivals.")
+        
+        return obj
     
     def get_queryset(self):
         queryset = Festival.objects.all()
