@@ -142,7 +142,7 @@ TIME_ZONE = 'Europe/Paris'
 
 # Configuration de l'API - Mode de déploiement
 # True = Mode en ligne (https://bachatavibe.com), False = Mode local (http://localhost:8000)
-USE_PRODUCTION_API = False
+USE_PRODUCTION_API = True
 
 # Nouveau: flags explicites pour le front en mode développement
 FRONTEND_DEV_MODE = not USE_PRODUCTION_API

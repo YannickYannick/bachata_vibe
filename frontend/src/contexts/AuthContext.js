@@ -97,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/register/`, {
+      const response = await fetch(`${API_BASE_URL}/accounts/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,8 +116,32 @@ export const AuthProvider = ({ children }) => {
         toast.success('Compte créé avec succès !');
         return { success: true };
       } else {
-        const errorData = await response.json();
-        const errorMessage = errorData.error || 'Erreur lors de l\'inscription';
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error('Impossible de parser la réponse d\'erreur:', e);
+        }
+        
+        // Formater les erreurs de manière lisible
+        let errorMessage = '';
+        if (errorData.error || errorData.detail) {
+          errorMessage = errorData.error || errorData.detail;
+        } else if (typeof errorData === 'object') {
+          // Si c'est un objet avec des erreurs par champ
+          const errorMessages = [];
+          for (const [field, messages] of Object.entries(errorData)) {
+            if (Array.isArray(messages)) {
+              errorMessages.push(`${field}: ${messages.join(', ')}`);
+            } else {
+              errorMessages.push(`${field}: ${messages}`);
+            }
+          }
+          errorMessage = errorMessages.join('\n');
+        } else {
+          errorMessage = 'Erreur lors de l\'inscription';
+        }
+        
         toast.error(errorMessage);
         return { success: false, error: errorMessage };
       }

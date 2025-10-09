@@ -153,7 +153,24 @@ const FestivalAdminForm = () => {
       navigate('/festivals');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
-      setError(error.message);
+      
+      // Afficher les détails de l'erreur de validation
+      if (error.data && error.data.detail) {
+        setError(error.data.detail);
+      } else if (error.data && typeof error.data === 'object') {
+        // Afficher les erreurs de validation par champ
+        const errorMessages = [];
+        for (const [field, messages] of Object.entries(error.data)) {
+          if (Array.isArray(messages)) {
+            errorMessages.push(`${field}: ${messages.join(', ')}`);
+          } else {
+            errorMessages.push(`${field}: ${messages}`);
+          }
+        }
+        setError(errorMessages.join('\n'));
+      } else {
+        setError(error.message || 'Erreur lors de la sauvegarde du festival');
+      }
     } finally {
       setLoading(false);
     }

@@ -622,6 +622,8 @@ class ApiService {
       
       const method = festivalId ? 'PUT' : 'POST';
       
+      console.log('Envoi des données festival:', festivalData);
+      
       const response = await fetch(url, {
         method,
         headers: {
@@ -631,7 +633,20 @@ class ApiService {
         body: JSON.stringify(festivalData),
       });
       
-      if (!response.ok) throw new Error('Erreur lors de la sauvegarde du festival');
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error('Impossible de parser la réponse d\'erreur:', e);
+        }
+        console.error('Erreur serveur:', errorData);
+        const error = new Error(`Erreur ${response.status}: ${response.statusText}`);
+        error.response = response;
+        error.data = errorData;
+        throw error;
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erreur API saveFestival:', error);
