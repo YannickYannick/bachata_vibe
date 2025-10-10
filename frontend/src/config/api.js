@@ -9,6 +9,7 @@ const FORCE_PRODUCTION_API = true;
 export const getApiUrl = () => {
   // Mode forcé vers l'API de production
   if (FORCE_PRODUCTION_API) {
+    console.log('🚀 API URL (FORCED): https://bachatavibe.com/api');
     return 'https://bachatavibe.com/api';
   }
   
