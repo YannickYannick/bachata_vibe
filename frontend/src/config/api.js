@@ -1,8 +1,17 @@
 // Configuration de l'API - Mode de déploiement
 // Cette configuration permet de basculer entre le mode local et le mode en ligne
 
+// ⚠️ FORCER L'UTILISATION DE L'API DE PRODUCTION
+// Pour revenir en mode local, mettre FORCE_PRODUCTION_API à false
+const FORCE_PRODUCTION_API = true;
+
 // Fonction pour déterminer l'URL de l'API selon l'environnement
 export const getApiUrl = () => {
+  // Mode forcé vers l'API de production
+  if (FORCE_PRODUCTION_API) {
+    return 'https://bachatavibe.com/api';
+  }
+  
   // Vérifier si on est en production (déployé sur bachatavibe.com)
   if (window.location.hostname === 'bachatavibe.com' || window.location.hostname === 'www.bachatavibe.com') {
     return 'https://bachatavibe.com/api';
