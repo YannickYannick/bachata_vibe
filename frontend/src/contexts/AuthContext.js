@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { getApiUrl } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -16,7 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('auth_token'));
   const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = 'http://localhost:8000/api';
+  const API_BASE_URL = getApiUrl();
 
   // Vérifier le token au chargement
   useEffect(() => {
