@@ -136,6 +136,21 @@ class ApiService {
     }
   }
 
+  // Récupérer les catégories de cours
+  async getCourseCategories() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/courses/categories/`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Erreur API getCourseCategories:', error);
+      throw error;
+    }
+  }
+
   // Récupérer les formations (catégories)
   async getFormations() {
     try {
