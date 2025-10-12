@@ -167,8 +167,7 @@ body {
 
 /* Styles pour les focus states */
 *:focus {
-  outline: 2px solid #a855f7;
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Styles pour les transitions fluides */
@@ -444,8 +443,7 @@ body {
 
 /* Focus visible for keyboard navigation */
 .focus-visible:focus {
-  outline: 2px solid #8b5cf6;
-  outline-offset: 2px;
+  outline: none;
 }
 
 /* Reduced motion support */

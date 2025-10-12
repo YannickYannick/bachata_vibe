@@ -62,7 +62,7 @@ const Navigation = () => {
           </Link>
 
           {/* Navigation desktop */}
-          <div className="hidden lg:flex lg:items-center lg:space-x-6">
+          <div className="hidden lg:flex lg:items-center lg:space-x-2 lg:ml-2">
             {navigationItems.map((item) => (
               <Link
                 key={item.name}
