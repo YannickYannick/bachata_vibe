@@ -9,8 +9,6 @@ import {
   Trophy,
   HeartIcon, 
   Heart, 
-  Search, 
-  Bell, 
   ChevronDown,
   User,
   Settings,
@@ -96,16 +94,6 @@ const Navigation = () => {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-3">
-            {/* Search */}
-            <button className={`p-2 rounded-lg transition-colors duration-200 text-gray-600 hover:text-purple-600 hover:bg-purple-50`}>
-              <Search className="w-5 h-5" />
-            </button>
-
-            {/* Notifications */}
-            <button className={`p-2 rounded-lg transition-colors duration-200 text-gray-600 hover:text-purple-600 hover:bg-purple-50`}>
-              <Bell className="w-5 h-5" />
-            </button>
-
             {/* User Menu */}
             {isAuthenticated && user ? (
               <div className="relative">

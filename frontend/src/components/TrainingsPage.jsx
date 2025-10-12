@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import ApiService from '../services/api';
 
 
 const TrainingsPage = () => {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [trainings, setTrainings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchTrainings();
-  }, []);
+    // Vérifier si l'utilisateur est admin
+    if (user && user.user_type === 'admin') {
+      setIsAdmin(true);
+    }
+  }, [user]);
 
   const fetchTrainings = async () => {
     try {
@@ -56,6 +66,51 @@ const TrainingsPage = () => {
       'expert': 'Expert'
     };
     return labels[level] || level;
+  };
+
+  // Fonctions d'action utilisateur
+  const handleEnrollInTraining = (training) => {
+    if (!user) {
+      toast.error('Vous devez être connecté pour vous inscrire');
+      return;
+    }
+    
+    if (training.current_participants >= training.max_participants) {
+      toast.error('Ce training est complet');
+      return;
+    }
+    
+    // TODO: Implémenter l'inscription via API
+    toast('Fonctionnalité d\'inscription en cours de développement', {
+      icon: 'ℹ️',
+      style: {
+        background: '#10B981',
+        color: '#fff',
+      },
+    });
+    console.log('Inscription au training:', training.id);
+  };
+
+  // Fonctions d'administration
+  const handleAddTraining = () => {
+    navigate('/admin/trainings/add');
+  };
+
+  const handleEditTraining = (trainingId) => {
+    navigate(`/admin/trainings/edit/${trainingId}`);
+  };
+
+  const handleDeleteTraining = async (trainingId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce training ?')) {
+      try {
+        await ApiService.deleteTraining(trainingId, token);
+        setTrainings(trainings.filter(t => t.id !== trainingId));
+        toast.success('Training supprimé avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast.error('Erreur lors de la suppression du training');
+      }
+    }
   };
 
   if (loading) {
@@ -112,6 +167,17 @@ const TrainingsPage = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Améliorez vos compétences avec nos trainings intensifs et spécialisés
           </p>
+          {isAdmin && (
+            <div className="mt-6">
+              <button
+                onClick={handleAddTraining}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center mx-auto"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Ajouter un training
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Grille des trainings */}
@@ -175,12 +241,48 @@ const TrainingsPage = () => {
                 {/* Prix et bouton */}
                 <div className="flex items-center justify-between">
                   <div className="text-2xl font-bold text-green-600">
-                    {training.price} {training.currency}
+                    {training.is_free ? 'Gratuit' : `${training.price} ${training.currency}`}
                   </div>
-                  <button className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
-                    S'inscrire
+                  <button 
+                    onClick={() => handleEnrollInTraining(training)}
+                    disabled={training.current_participants >= training.max_participants}
+                    className={`font-medium py-2 px-4 rounded-lg transition-colors ${
+                      training.current_participants >= training.max_participants
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white'
+                    }`}
+                  >
+                    {training.current_participants >= training.max_participants ? 'Complet' : 'S\'inscrire'}
                   </button>
                 </div>
+
+                {/* Boutons admin */}
+                {isAdmin && (
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditTraining(training.id);
+                      }}
+                      className="flex-1 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      title="Modifier"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Modifier
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTraining(training.id);
+                      }}
+                      className="flex-1 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Supprimer
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

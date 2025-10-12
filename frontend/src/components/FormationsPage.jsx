@@ -25,7 +25,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const FormationsPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [categories, setCategories] = useState([]);
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -112,7 +112,7 @@ const FormationsPage = () => {
     if (!articleToDelete) return;
 
     try {
-      await ApiService.deleteFormationArticle(articleToDelete.slug, localStorage.getItem('token'));
+      await ApiService.deleteFormationArticle(articleToDelete.slug, token);
       setArticles(articles.filter(a => a.slug !== articleToDelete.slug));
       setShowDeleteModal(false);
       setArticleToDelete(null);

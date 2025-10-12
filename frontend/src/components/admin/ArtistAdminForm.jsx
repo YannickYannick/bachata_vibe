@@ -6,45 +6,45 @@ import ApiService from '../../services/api';
 import { 
   Save, 
   X, 
-  Calendar, 
+  User, 
   MapPin, 
-  Users, 
-  Euro,
+  Award, 
+  Star,
   FileText,
-  Image
+  Image,
+  Music
 } from 'lucide-react';
 
-const FestivalAdminForm = () => {
+const ArtistAdminForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
   const { token } = useAuth();
   
   const [formData, setFormData] = useState({
-    title: '',
-    short_description: '',
-    description: '',
-    city: '',
-    country: 'France',
-    start_date: '',
-    end_date: '',
-    registration_deadline: '',
-    duration_days: 1,
-    max_participants: 100,
-    base_price: 0,
-    currency: 'EUR',
-    is_free: false,
-    status: 'pending',
+    artist_name: '',
+    bio: '',
+    short_bio: '',
+    specialties: [],
+    dance_styles: [],
+    teaching_experience: 0,
+    performance_experience: 0,
+    qualifications: [],
+    certifications: [],
+    awards: [],
+    profile_image: null,
     main_image: null,
-    location: '',
-    address: '',
-    postal_code: '',
-    highlights: '',
-    schedule: '',
-    requirements: '',
+    demo_video: '',
     website_url: '',
     instagram: '',
-    facebook: ''
+    facebook: '',
+    youtube: '',
+    tiktok: '',
+    base_location: '',
+    city: '',
+    country: 'France',
+    is_featured: false,
+    is_verified: false
   });
 
   const [loading, setLoading] = useState(false);
@@ -52,40 +52,43 @@ const FestivalAdminForm = () => {
 
   useEffect(() => {
     if (isEditing) {
-      fetchFestival();
+      fetchArtist();
     }
   }, [id]);
 
-  const fetchFestival = async () => {
+  const fetchArtist = async () => {
     try {
       setLoading(true);
-      const festival = await ApiService.getFestival(id);
+      const artist = await ApiService.getArtist(id);
       setFormData({
         ...formData,
-        title: festival.title || '',
-        short_description: festival.short_description || '',
-        description: festival.description || '',
-        city: festival.city || '',
-        country: festival.country || 'France',
-        location: festival.location || '',
-        address: festival.address || '',
-        postal_code: festival.postal_code || '',
-        start_date: festival.start_date ? festival.start_date.split('T')[0] : '',
-        end_date: festival.end_date ? festival.end_date.split('T')[0] : '',
-        registration_deadline: festival.registration_deadline ? festival.registration_deadline.split('T')[0] : '',
-        duration_days: festival.duration_days || 1,
-        max_participants: festival.max_participants || 100,
-        base_price: festival.base_price ?? 0,
-        currency: festival.currency || 'EUR',
-        is_free: Boolean(festival.is_free),
-        status: festival.status || 'pending',
-        website_url: festival.website_url || '',
-        instagram: festival.instagram || '',
-        main_image: festival.main_image || '',
+        artist_name: artist.artist_name || '',
+        bio: artist.bio || '',
+        short_bio: artist.short_bio || '',
+        specialties: artist.specialties || [],
+        dance_styles: artist.dance_styles || [],
+        teaching_experience: artist.teaching_experience || 0,
+        performance_experience: artist.performance_experience || 0,
+        qualifications: artist.qualifications || [],
+        certifications: artist.certifications || [],
+        awards: artist.awards || [],
+        demo_video: artist.demo_video || '',
+        website_url: artist.website_url || '',
+        instagram: artist.instagram || '',
+        facebook: artist.facebook || '',
+        youtube: artist.youtube || '',
+        tiktok: artist.tiktok || '',
+        base_location: artist.base_location || '',
+        city: artist.city || '',
+        country: artist.country || 'France',
+        is_featured: Boolean(artist.is_featured),
+        is_verified: Boolean(artist.is_verified),
+        profile_image: artist.profile_image || '',
+        main_image: artist.main_image || '',
       });
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
-      setError('Erreur lors du chargement du festival');
+      setError('Erreur lors du chargement de l\'artiste');
     } finally {
       setLoading(false);
     }
@@ -104,9 +107,17 @@ const FestivalAdminForm = () => {
     if (file) {
       setFormData(prev => ({
         ...prev,
-        main_image: file
+        [e.target.name]: file
       }));
     }
+  };
+
+  const handleArrayInputChange = (field, value) => {
+    const array = value.split(',').map(item => item.trim()).filter(item => item);
+    setFormData(prev => ({
+      ...prev,
+      [field]: array
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -115,48 +126,48 @@ const FestivalAdminForm = () => {
     setError(null);
 
     if (!token) {
-      setError('Vous devez être connecté pour sauvegarder un festival');
+      setError('Vous devez être connecté pour sauvegarder un artiste');
       setLoading(false);
       return;
     }
 
     try {
-      const toIsoDateTime = (dateStr, endOfDay = false) => {
-        if (!dateStr) return '';
-        const time = endOfDay ? '23:59:59' : '00:00:00';
-        return `${dateStr}T${time}Z`;
-      };
-
-      const festivalData = {
-        title: formData.title,
-        short_description: formData.short_description,
-        description: formData.description,
-        city: formData.city,
-        country: formData.country,
-        location: formData.location,
-        address: formData.address,
-        postal_code: formData.postal_code,
-        start_date: toIsoDateTime(formData.start_date, false),
-        end_date: toIsoDateTime(formData.end_date, true),
-        registration_deadline: toIsoDateTime(formData.registration_deadline, false),
-        max_participants: Number(formData.max_participants),
-        base_price: Number(formData.base_price),
-        currency: formData.currency,
-        is_free: Boolean(formData.is_free),
-        status: formData.status,
+      const artistData = {
+        artist_name: formData.artist_name,
+        bio: formData.bio,
+        short_bio: formData.short_bio,
+        specialties: formData.specialties,
+        dance_styles: formData.dance_styles,
+        teaching_experience: Number(formData.teaching_experience),
+        performance_experience: Number(formData.performance_experience),
+        qualifications: formData.qualifications,
+        certifications: formData.certifications,
+        awards: formData.awards,
+        demo_video: formData.demo_video,
         website_url: formData.website_url,
         instagram: formData.instagram,
+        facebook: formData.facebook,
+        youtube: formData.youtube,
+        tiktok: formData.tiktok,
+        base_location: formData.base_location,
+        city: formData.city,
+        country: formData.country,
+        is_featured: Boolean(formData.is_featured),
+        is_verified: Boolean(formData.is_verified),
       };
 
-      // Ne pas inclure main_image si c'est vide ou null
+      // Ne pas inclure les images si elles sont vides ou null
+      if (formData.profile_image && formData.profile_image !== '') {
+        artistData.profile_image = formData.profile_image;
+      }
       if (formData.main_image && formData.main_image !== '') {
-        festivalData.main_image = formData.main_image;
+        artistData.main_image = formData.main_image;
       }
       
-      await ApiService.saveFestival(festivalData, token, isEditing ? id : null);
+      await ApiService.saveArtist(artistData, token, isEditing ? id : null);
 
-      // Rediriger vers la liste des festivals
-      navigate('/festivals');
+      // Rediriger vers la liste des artistes
+      navigate('/artists');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       
@@ -175,20 +186,10 @@ const FestivalAdminForm = () => {
         }
         setError(errorMessages.join('\n'));
       } else {
-        setError(error.message || 'Erreur lors de la sauvegarde du festival');
+        setError(error.message || 'Erreur lors de la sauvegarde de l\'artiste');
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const calculateDuration = () => {
-    if (formData.start_date && formData.end_date) {
-      const start = new Date(formData.start_date);
-      const end = new Date(formData.end_date);
-      const diffTime = Math.abs(end - start);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      setFormData(prev => ({ ...prev, duration_days: diffDays }));
     }
   };
 
@@ -197,7 +198,7 @@ const FestivalAdminForm = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement du festival...</p>
+          <p className="text-gray-600">Chargement de l'artiste...</p>
         </div>
       </div>
     );
@@ -210,10 +211,10 @@ const FestivalAdminForm = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900">
-              {isEditing ? 'Modifier le festival' : 'Ajouter un festival'}
+              {isEditing ? 'Modifier l\'artiste' : 'Ajouter un artiste'}
             </h1>
             <button
-              onClick={() => navigate('/festivals')}
+              onClick={() => navigate('/artists')}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-6 h-6" />
@@ -245,124 +246,45 @@ const FestivalAdminForm = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Titre *
+                Nom d'artiste *
               </label>
               <input
                 type="text"
-                name="title"
-                value={formData.title}
+                name="artist_name"
+                value={formData.artist_name}
                 onChange={handleInputChange}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Statut
-              </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="pending">En attente</option>
-                <option value="approved">Approuvé</option>
-                <option value="ongoing">En cours</option>
-                <option value="completed">Terminé</option>
-                <option value="cancelled">Annulé</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description courte *
-              </label>
-              <textarea
-                name="short_description"
-                value={formData.short_description}
-                onChange={handleInputChange}
-                required
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description complète
-              </label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Dates et lieu */}
             <div className="lg:col-span-2">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Calendar className="w-5 h-5 mr-2" />
-                Dates et lieu
-              </h3>
-            </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date de début *
+                Lieu de base *
               </label>
               <input
-                type="date"
-                name="start_date"
-                value={formData.start_date}
+                type="text"
+                name="base_location"
+                value={formData.base_location}
                 onChange={handleInputChange}
+                placeholder="Ex: Paris, France"
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Indiquez la ville et le pays où l'artiste est basé
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Date de fin *
-              </label>
-              <input
-                type="date"
-                name="end_date"
-                value={formData.end_date}
-                onChange={handleInputChange}
-                onBlur={calculateDuration}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date limite d'inscription *
-            </label>
-            <input
-              type="date"
-              name="registration_deadline"
-              value={formData.registration_deadline}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Ville *
+                Ville
               </label>
               <input
                 type="text"
                 name="city"
                 value={formData.city}
                 onChange={handleInputChange}
-                required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
@@ -380,104 +302,199 @@ const FestivalAdminForm = () => {
               />
             </div>
 
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lieu (nom de la salle / lieu principal) *
-            </label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="is_featured"
+                  checked={formData.is_featured}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">Artiste en vedette</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="is_verified"
+                  checked={formData.is_verified}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-700">Vérifié</span>
+              </label>
+            </div>
 
-            {/* Capacité et prix */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biographie courte *
+              </label>
+              <textarea
+                name="short_bio"
+                value={formData.short_bio}
+                onChange={handleInputChange}
+                required
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biographie complète *
+              </label>
+              <textarea
+                name="bio"
+                value={formData.bio}
+                onChange={handleInputChange}
+                required
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Spécialités et styles */}
             <div className="lg:col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                Capacité et prix
+                <Music className="w-5 h-5 mr-2" />
+                Spécialités et styles
               </h3>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre maximum de participants
+                Spécialités (séparées par des virgules)
               </label>
               <input
-                type="number"
-                name="max_participants"
-                value={formData.max_participants}
-                onChange={handleInputChange}
-                min="1"
+                type="text"
+                value={formData.specialties.join(', ')}
+                onChange={(e) => handleArrayInputChange('specialties', e.target.value)}
+                placeholder="Bachata Sensual, Bachata Traditional, Salsa"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Durée (jours)
+                Styles de danse (séparés par des virgules)
+              </label>
+              <input
+                type="text"
+                value={formData.dance_styles.join(', ')}
+                onChange={(e) => handleArrayInputChange('dance_styles', e.target.value)}
+                placeholder="Bachata, Salsa, Kizomba, Zouk"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Expérience */}
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Star className="w-5 h-5 mr-2" />
+                Expérience
+              </h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Années d'expérience d'enseignement
               </label>
               <input
                 type="number"
-                name="duration_days"
-                value={formData.duration_days}
+                name="teaching_experience"
+                value={formData.teaching_experience}
                 onChange={handleInputChange}
-                min="1"
+                min="0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prix de base
+                Années d'expérience de performance
               </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  name="base_price"
-                  value={formData.base_price}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                  disabled={formData.is_free}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
-                />
-                <select
-                  name="currency"
-                  value={formData.currency}
-                  onChange={handleInputChange}
-                  disabled={formData.is_free}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
-                >
-                  <option value="EUR">EUR</option>
-                  <option value="USD">USD</option>
-                  <option value="GBP">GBP</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex items-center">
               <input
-                type="checkbox"
-                name="is_free"
-                checked={formData.is_free}
+                type="number"
+                name="performance_experience"
+                value={formData.performance_experience}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
-              <label className="ml-2 block text-sm text-gray-700">
-                Festival gratuit
-              </label>
             </div>
 
-            {/* Image */}
+            {/* Qualifications et certifications */}
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Award className="w-5 h-5 mr-2" />
+                Qualifications et récompenses
+              </h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Qualifications (séparées par des virgules)
+              </label>
+              <input
+                type="text"
+                value={formData.qualifications.join(', ')}
+                onChange={(e) => handleArrayInputChange('qualifications', e.target.value)}
+                placeholder="Formation professionnelle, Diplôme de danse"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Certifications (séparées par des virgules)
+              </label>
+              <input
+                type="text"
+                value={formData.certifications.join(', ')}
+                onChange={(e) => handleArrayInputChange('certifications', e.target.value)}
+                placeholder="Certification Bachata Sensual, Formation Salsa"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Prix et récompenses (séparés par des virgules)
+              </label>
+              <input
+                type="text"
+                value={formData.awards.join(', ')}
+                onChange={(e) => handleArrayInputChange('awards', e.target.value)}
+                placeholder="1er Prix Festival de Bachata, Meilleur Instructeur 2023"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Images */}
             <div className="lg:col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Image className="w-5 h-5 mr-2" />
-                Image principale
+                Images
               </h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image de profil
+              </label>
+              <input
+                type="file"
+                name="profile_image"
+                onChange={handleImageChange}
+                accept="image/*"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Image principale
+              </label>
               <input
                 type="file"
                 name="main_image"
@@ -487,12 +504,26 @@ const FestivalAdminForm = () => {
               />
             </div>
 
-            {/* Réseaux sociaux */}
+            {/* Médias */}
             <div className="lg:col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <MapPin className="w-5 h-5 mr-2" />
-                Réseaux sociaux et contact
+                <Music className="w-5 h-5 mr-2" />
+                Médias et réseaux sociaux
               </h3>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Vidéo de démonstration
+              </label>
+              <input
+                type="url"
+                name="demo_video"
+                value={formData.demo_video}
+                onChange={handleInputChange}
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
             </div>
 
             <div>
@@ -504,6 +535,7 @@ const FestivalAdminForm = () => {
                 name="website_url"
                 value={formData.website_url}
                 onChange={handleInputChange}
+                placeholder="https://www.artiste.com"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
@@ -536,52 +568,30 @@ const FestivalAdminForm = () => {
               />
             </div>
 
-            {/* Informations supplémentaires */}
-            <div className="lg:col-span-2">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <FileText className="w-5 h-5 mr-2" />
-                Informations supplémentaires
-              </h3>
-            </div>
-
-            <div className="lg:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Points forts
+                YouTube
               </label>
-              <textarea
-                name="highlights"
-                value={formData.highlights}
+              <input
+                type="text"
+                name="youtube"
+                value={formData.youtube}
                 onChange={handleInputChange}
-                rows={3}
-                placeholder="Listez les points forts du festival..."
+                placeholder="@channel ou channel.com"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
-            <div className="lg:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Programme
+                TikTok
               </label>
-              <textarea
-                name="schedule"
-                value={formData.schedule}
+              <input
+                type="text"
+                name="tiktok"
+                value={formData.tiktok}
                 onChange={handleInputChange}
-                rows={4}
-                placeholder="Décrivez le programme du festival..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prérequis
-              </label>
-              <textarea
-                name="requirements"
-                value={formData.requirements}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder="Prérequis pour participer au festival..."
+                placeholder="@username"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
@@ -591,7 +601,7 @@ const FestivalAdminForm = () => {
           <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => navigate('/festivals')}
+              onClick={() => navigate('/artists')}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Annuler
@@ -609,7 +619,7 @@ const FestivalAdminForm = () => {
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  {isEditing ? 'Mettre à jour' : 'Créer le festival'}
+                  {isEditing ? 'Mettre à jour' : 'Créer l\'artiste'}
                 </>
               )}
             </button>
@@ -620,5 +630,4 @@ const FestivalAdminForm = () => {
   );
 };
 
-export default FestivalAdminForm;
- 
+export default ArtistAdminForm;

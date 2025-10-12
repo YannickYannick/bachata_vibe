@@ -23,7 +23,9 @@ class ArtistProfileViewSet(viewsets.ModelViewSet):
     ordering = ['-rating', '-created_at']
     
     def get_queryset(self):
-        queryset = ArtistProfile.objects.filter(is_verified=True)
+        # Afficher tous les artistes (pour le développement)
+        # TODO: Remettre le filtre is_verified=True en production
+        queryset = ArtistProfile.objects.all()
         
         # Filtrage par localisation
         location = self.request.query_params.get('location', None)

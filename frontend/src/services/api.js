@@ -330,6 +330,57 @@ class ApiService {
     }
   }
 
+  // Supprimer un artiste
+  async deleteArtist(id, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/artists/artists/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Erreur lors de la suppression de l\'artiste');
+      return response.ok;
+    } catch (error) {
+      console.error('Erreur API deleteArtist:', error);
+      throw error;
+    }
+  }
+
+  // Supprimer un training
+  async deleteTraining(id, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/trainings/trainings/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Erreur lors de la suppression du training');
+      return response.ok;
+    } catch (error) {
+      console.error('Erreur API deleteTraining:', error);
+      throw error;
+    }
+  }
+
+  // Supprimer une compétition
+  async deleteCompetition(id, token) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/competitions/competitions/${id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Token ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Erreur lors de la suppression de la compétition');
+      return response.ok;
+    } catch (error) {
+      console.error('Erreur API deleteCompetition:', error);
+      throw error;
+    }
+  }
+
   // Récupérer les festivals de l'utilisateur
   async getMyFestivals(token) {
     try {
@@ -495,8 +546,8 @@ class ApiService {
           if (eventData[key] !== null && eventData[key] !== undefined) {
             if (key === 'main_image' && eventData[key] instanceof File) {
               formData.append(key, eventData[key]);
-            } else if (key === 'highlights' || key === 'schedule') {
-              // Pour les champs JSON, les envoyer comme chaîne JSON
+            } else if (Array.isArray(eventData[key]) || typeof eventData[key] === 'object') {
+              // Pour les champs JSON (tableaux et objets), les envoyer comme chaîne JSON
               formData.append(key, JSON.stringify(eventData[key]));
             } else {
               formData.append(key, eventData[key]);
@@ -550,16 +601,67 @@ class ApiService {
       const url = trainingId 
         ? `${API_BASE_URL}/trainings/trainings/${trainingId}/`
         : `${API_BASE_URL}/trainings/trainings/`;
+      
       const method = trainingId ? 'PUT' : 'POST';
-      const response = await fetch(url, {
-        method,
-        headers: {
+      
+      console.log('Envoi des données training:', trainingData);
+      
+      // Vérifier s'il y a un fichier à uploader
+      const hasFile = trainingData.main_image && trainingData.main_image instanceof File;
+      
+      let headers, body;
+      
+      if (hasFile) {
+        // Utiliser FormData pour les fichiers
+        const formData = new FormData();
+        
+        // Ajouter tous les champs au FormData
+        Object.keys(trainingData).forEach(key => {
+          if (trainingData[key] !== null && trainingData[key] !== undefined) {
+            if (key === 'main_image' && trainingData[key] instanceof File) {
+              formData.append(key, trainingData[key]);
+            } else if (Array.isArray(trainingData[key]) || typeof trainingData[key] === 'object') {
+              // Pour les champs JSON (tableaux et objets), les envoyer comme chaîne JSON
+              formData.append(key, JSON.stringify(trainingData[key]));
+            } else {
+              formData.append(key, trainingData[key]);
+            }
+          }
+        });
+        
+        headers = {
+          'Authorization': `Token ${token}`,
+        };
+        body = formData;
+      } else {
+        // Utiliser JSON pour les données sans fichier
+        headers = {
           'Content-Type': 'application/json',
           'Authorization': `Token ${token}`,
-        },
-        body: JSON.stringify(trainingData),
+        };
+        body = JSON.stringify(trainingData);
+      }
+      
+      const response = await fetch(url, {
+        method,
+        headers,
+        body,
       });
-      if (!response.ok) throw new Error('Erreur lors de la sauvegarde du training');
+      
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error('Impossible de parser la réponse d\'erreur:', e);
+        }
+        console.error('Erreur serveur:', errorData);
+        const error = new Error(`Erreur ${response.status}: ${response.statusText}`);
+        error.response = response;
+        error.data = errorData;
+        throw error;
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erreur API saveTraining:', error);
@@ -573,16 +675,67 @@ class ApiService {
       const url = competitionId 
         ? `${API_BASE_URL}/competitions/competitions/${competitionId}/`
         : `${API_BASE_URL}/competitions/competitions/`;
+      
       const method = competitionId ? 'PUT' : 'POST';
-      const response = await fetch(url, {
-        method,
-        headers: {
+      
+      console.log('Envoi des données competition:', competitionData);
+      
+      // Vérifier s'il y a un fichier à uploader
+      const hasFile = competitionData.main_image && competitionData.main_image instanceof File;
+      
+      let headers, body;
+      
+      if (hasFile) {
+        // Utiliser FormData pour les fichiers
+        const formData = new FormData();
+        
+        // Ajouter tous les champs au FormData
+        Object.keys(competitionData).forEach(key => {
+          if (competitionData[key] !== null && competitionData[key] !== undefined) {
+            if (key === 'main_image' && competitionData[key] instanceof File) {
+              formData.append(key, competitionData[key]);
+            } else if (Array.isArray(competitionData[key])) {
+              // Convertir les tableaux en JSON
+              formData.append(key, JSON.stringify(competitionData[key]));
+            } else {
+              formData.append(key, competitionData[key]);
+            }
+          }
+        });
+        
+        headers = {
+          'Authorization': `Token ${token}`,
+        };
+        body = formData;
+      } else {
+        // Utiliser JSON pour les données sans fichier
+        headers = {
           'Content-Type': 'application/json',
           'Authorization': `Token ${token}`,
-        },
-        body: JSON.stringify(competitionData),
+        };
+        body = JSON.stringify(competitionData);
+      }
+      
+      const response = await fetch(url, {
+        method,
+        headers,
+        body,
       });
-      if (!response.ok) throw new Error('Erreur lors de la sauvegarde de la compétition');
+      
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error('Impossible de parser la réponse d\'erreur:', e);
+        }
+        console.error('Erreur serveur:', errorData);
+        const error = new Error(`Erreur ${response.status}: ${response.statusText}`);
+        error.response = response;
+        error.data = errorData;
+        throw error;
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erreur API saveCompetition:', error);
@@ -596,16 +749,68 @@ class ApiService {
       const url = artistId 
         ? `${API_BASE_URL}/artists/artists/${artistId}/`
         : `${API_BASE_URL}/artists/artists/`;
+      
       const method = artistId ? 'PUT' : 'POST';
-      const response = await fetch(url, {
-        method,
-        headers: {
+      
+      console.log('Envoi des données artist:', artistData);
+      
+      // Vérifier s'il y a un fichier à uploader
+      const hasFile = (artistData.profile_image && artistData.profile_image instanceof File) || 
+                     (artistData.main_image && artistData.main_image instanceof File);
+      
+      let headers, body;
+      
+      if (hasFile) {
+        // Utiliser FormData pour les fichiers
+        const formData = new FormData();
+        
+        // Ajouter tous les champs au FormData
+        Object.keys(artistData).forEach(key => {
+          if (artistData[key] !== null && artistData[key] !== undefined) {
+            if ((key === 'profile_image' || key === 'main_image') && artistData[key] instanceof File) {
+              formData.append(key, artistData[key]);
+            } else if (Array.isArray(artistData[key])) {
+              // Convertir les tableaux en JSON
+              formData.append(key, JSON.stringify(artistData[key]));
+            } else {
+              formData.append(key, artistData[key]);
+            }
+          }
+        });
+        
+        headers = {
+          'Authorization': `Token ${token}`,
+        };
+        body = formData;
+      } else {
+        // Utiliser JSON pour les données sans fichier
+        headers = {
           'Content-Type': 'application/json',
           'Authorization': `Token ${token}`,
-        },
-        body: JSON.stringify(artistData),
+        };
+        body = JSON.stringify(artistData);
+      }
+      
+      const response = await fetch(url, {
+        method,
+        headers,
+        body,
       });
-      if (!response.ok) throw new Error("Erreur lors de la sauvegarde de l'artiste");
+      
+      if (!response.ok) {
+        let errorData = {};
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          console.error('Impossible de parser la réponse d\'erreur:', e);
+        }
+        console.error('Erreur serveur:', errorData);
+        const error = new Error(`Erreur ${response.status}: ${response.statusText}`);
+        error.response = response;
+        error.data = errorData;
+        throw error;
+      }
+      
       return await response.json();
     } catch (error) {
       console.error('Erreur API saveArtist:', error);
@@ -624,13 +829,46 @@ class ApiService {
       
       console.log('Envoi des données festival:', festivalData);
       
-      const response = await fetch(url, {
-        method,
-        headers: {
+      // Vérifier s'il y a un fichier à uploader
+      const hasFile = festivalData.main_image && festivalData.main_image instanceof File;
+      
+      let headers, body;
+      
+      if (hasFile) {
+        // Utiliser FormData pour les fichiers
+        const formData = new FormData();
+        
+        // Ajouter tous les champs au FormData
+        Object.keys(festivalData).forEach(key => {
+          if (festivalData[key] !== null && festivalData[key] !== undefined) {
+            if (key === 'main_image' && festivalData[key] instanceof File) {
+              formData.append(key, festivalData[key]);
+            } else if (Array.isArray(festivalData[key]) || typeof festivalData[key] === 'object') {
+              // Pour les champs JSON (tableaux et objets), les envoyer comme chaîne JSON
+              formData.append(key, JSON.stringify(festivalData[key]));
+            } else {
+              formData.append(key, festivalData[key]);
+            }
+          }
+        });
+        
+        headers = {
+          'Authorization': `Token ${token}`,
+        };
+        body = formData;
+      } else {
+        // Utiliser JSON pour les données sans fichier
+        headers = {
           'Content-Type': 'application/json',
           'Authorization': `Token ${token}`,
-        },
-        body: JSON.stringify(festivalData),
+        };
+        body = JSON.stringify(festivalData);
+      }
+      
+      const response = await fetch(url, {
+        method,
+        headers,
+        body,
       });
       
       if (!response.ok) {

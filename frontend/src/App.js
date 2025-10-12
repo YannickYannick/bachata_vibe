@@ -23,6 +23,14 @@ import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import ProfilePage from './pages/auth/ProfilePage';
 
+// Admin Forms
+import CompetitionAdminForm from './components/admin/CompetitionAdminForm';
+import TrainingAdminForm from './components/admin/TrainingAdminForm';
+import ArtistAdminForm from './components/admin/ArtistAdminForm';
+import CourseAdminForm from './components/admin/CourseAdminForm';
+import FestivalAdminForm from './components/admin/FestivalAdminForm';
+import EventAdminForm from './components/admin/EventAdminForm';
+
 // Context
 import { AuthProvider } from './contexts/AuthContext';
 
@@ -219,6 +227,175 @@ function App() {
                       </motion.div>
                     } 
                   />
+
+                  {/* Admin Routes */}
+                  <Route 
+                    path="/admin/competitions/add" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <CompetitionAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/competitions/edit/:id" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <CompetitionAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/trainings/add" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <TrainingAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/trainings/edit/:id" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <TrainingAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/artists/add" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ArtistAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/artists/edit/:id" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ArtistAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/courses/add" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <CourseAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/courses/edit/:id" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <CourseAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/festivals/add" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <FestivalAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/festivals/edit/:id" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <FestivalAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/events/add" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <EventAdminForm />
+                      </motion.div>
+                    } 
+                  />
+                  
+                  <Route 
+                    path="/admin/events/edit/:id" 
+                    element={
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <EventAdminForm />
+                      </motion.div>
+                    } 
+                  />
                 </Routes>
               </AnimatePresence>
             </main>
@@ -258,6 +435,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

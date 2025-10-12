@@ -16,8 +16,10 @@ import { Link } from 'react-router-dom';
 import VideoBackground from './VideoBackground';
 import { getStats, getFeaturedCourses } from '../services/api';
 import ApiService from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const HomePage = () => {
+  const { isAuthenticated } = useAuth();
   const [stats, setStats] = useState({
     courses_count: 0,
     total_participants: 0,
@@ -132,12 +134,14 @@ const HomePage = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center"
               variants={itemVariants}
             >
-              <Link
-                to="/register"
-                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
-                Créer un compte
-              </Link>
+              {!isAuthenticated && (
+                <Link
+                  to="/register"
+                  className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Créer un compte
+                </Link>
+              )}
               <Link
                 to="/courses"
                 className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105"
@@ -460,12 +464,14 @@ const HomePage = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center"
               variants={itemVariants}
             >
-              <Link
-                to="/register"
-                className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
-              >
-                Commencer maintenant
-              </Link>
+              {!isAuthenticated && (
+                <Link
+                  to="/register"
+                  className="bg-yellow-400 text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-yellow-300 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                >
+                  Commencer maintenant
+                </Link>
+              )}
               <Link
                 to="/courses"
                 className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-purple-900 transition-all duration-300 transform hover:scale-105"

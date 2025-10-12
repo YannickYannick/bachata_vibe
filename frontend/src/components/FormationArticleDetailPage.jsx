@@ -31,7 +31,7 @@ import { useAuth } from '../contexts/AuthContext';
 const FormationArticleDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -88,7 +88,7 @@ const FormationArticleDetailPage = () => {
     }
 
     try {
-      const data = await ApiService.toggleFormationFavorite(article.id, localStorage.getItem('token'));
+      const data = await ApiService.toggleFormationFavorite(article.id, token);
       setIsFavorited(data.is_favorited);
       // Mettre à jour le compteur de likes
       setArticle(prev => ({
@@ -104,7 +104,7 @@ const FormationArticleDetailPage = () => {
     if (!user) return;
 
     try {
-      const data = await ApiService.updateFormationProgress(article.id, percentage, localStorage.getItem('token'));
+      const data = await ApiService.updateFormationProgress(article.id, percentage, token);
       setUserProgress(data);
     } catch (error) {
       console.error('Erreur lors de la mise à jour de la progression:', error);
@@ -121,7 +121,7 @@ const FormationArticleDetailPage = () => {
     if (!newComment.trim()) return;
 
     try {
-      const comment = await ApiService.addFormationComment(article.id, newComment, localStorage.getItem('token'));
+      const comment = await ApiService.addFormationComment(article.id, newComment, token);
       setComments(prev => [comment, ...prev]);
       setNewComment('');
       setReplyTo(null);
@@ -143,7 +143,7 @@ const FormationArticleDetailPage = () => {
 
   const confirmDeleteArticle = async () => {
     try {
-      await ApiService.deleteFormationArticle(slug, localStorage.getItem('token'));
+      await ApiService.deleteFormationArticle(slug, token);
       navigate('/formations');
     } catch (error) {
       console.error('Erreur:', error);

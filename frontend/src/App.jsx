@@ -25,6 +25,10 @@ import MyCoursesPage from './components/MyCoursesPage';
 import TestAuth from './components/TestAuth';
 import FestivalAdminForm from './components/admin/FestivalAdminForm';
 import EventAdminForm from './components/admin/EventAdminForm';
+import CompetitionAdminForm from './components/admin/CompetitionAdminForm';
+import TrainingAdminForm from './components/admin/TrainingAdminForm';
+import ArtistAdminForm from './components/admin/ArtistAdminForm';
+import CourseAdminForm from './components/admin/CourseAdminForm';
 import FormationsPage from './components/FormationsPage';
 import FormationArticleDetailPage from './components/FormationArticleDetailPage';
 import FormationAdminForm from './components/admin/FormationAdminForm';
@@ -59,8 +63,20 @@ function App() {
                 <Route path="/admin/formations/add" element={<FormationAdminForm />} />
                 <Route path="/admin/formations/edit/:slug" element={<FormationAdminForm />} />
                 <Route path="/trainings" element={<TrainingsPage />} />
+              {/* Routes d'administration pour les trainings */}
+              <Route path="/admin/trainings/add" element={<TrainingAdminForm />} />
+              <Route path="/admin/trainings/edit/:id" element={<TrainingAdminForm />} />
               <Route path="/competitions" element={<CompetitionsPage />} />
+              {/* Routes d'administration pour les compétitions */}
+              <Route path="/admin/competitions/add" element={<CompetitionAdminForm />} />
+              <Route path="/admin/competitions/edit/:id" element={<CompetitionAdminForm />} />
               <Route path="/artists" element={<ArtistsPage />} />
+              {/* Routes d'administration pour les artistes */}
+              <Route path="/admin/artists/add" element={<ArtistAdminForm />} />
+              <Route path="/admin/artists/edit/:id" element={<ArtistAdminForm />} />
+              {/* Routes d'administration pour les cours */}
+              <Route path="/admin/courses/add" element={<CourseAdminForm />} />
+              <Route path="/admin/courses/edit/:id" element={<CourseAdminForm />} />
               <Route path="/theory" element={<TheoryPage />} />
               <Route path="/care" element={<CarePage />} />
               <Route path="/login" element={<LoginPage />} />

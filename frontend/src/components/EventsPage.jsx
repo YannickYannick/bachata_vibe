@@ -20,7 +20,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const EventsPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -116,7 +116,7 @@ const EventsPage = () => {
     if (!eventToDelete) return;
     
     try {
-      await ApiService.deleteEvent(eventToDelete.slug, localStorage.getItem('token'));
+      await ApiService.deleteEvent(eventToDelete.slug, token);
       
       // Supprimer l'événement de la liste locale
       setEvents(events.filter(e => e.slug !== eventToDelete.slug));

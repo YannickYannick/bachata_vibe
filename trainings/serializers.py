@@ -15,25 +15,30 @@ class TrainingSerializer(serializers.ModelSerializer):
     creator = UserSerializer(read_only=True)
     approved_by = UserSerializer(read_only=True)
     
-    # Champs calculés
-    duration_display = serializers.ReadOnlyField()
+    # Champs calculés pour la compatibilité frontend
+    duration_hours = serializers.SerializerMethodField()
+    level = serializers.CharField(source='difficulty', read_only=True)
     
     class Meta:
         model = Training
         fields = [
             'id', 'title', 'slug', 'description', 'short_description',
-            'training_type', 'difficulty', 'status', 'creator', 'approved_by',
-            'approved_at', 'start_date', 'end_date', 'duration_minutes',
-            'schedule', 'location', 'address', 'city', 'postal_code',
-            'country', 'price', 'currency', 'is_free', 'max_participants',
-            'current_participants', 'main_image', 'gallery', 'video_url',
-            'curriculum', 'prerequisites', 'materials_needed', 'objectives',
-            'tags', 'duration_display', 'created_at', 'updated_at'
+            'training_type', 'difficulty', 'level', 'status', 'creator', 'approved_by',
+            'approved_at', 'start_date', 'end_date', 'duration_minutes', 'duration_hours',
+            'location', 'address', 'city', 'postal_code',
+            'price', 'currency', 'is_free', 'max_participants', 'min_participants',
+            'current_participants', 'main_image', 'gallery',
+            'content', 'prerequisites', 'materials_needed', 'objectives',
+            'tags', 'created_at', 'updated_at'
         ]
         read_only_fields = [
             'id', 'slug', 'creator', 'approved_by', 'approved_at',
-            'current_participants', 'duration_display', 'created_at', 'updated_at'
+            'current_participants', 'level', 'duration_hours', 'created_at', 'updated_at'
         ]
+    
+    def get_duration_hours(self, obj):
+        """Convertit la durée en heures pour le frontend"""
+        return round(obj.duration_minutes / 60, 2)
     
     def create(self, validated_data):
         # Assigner l'utilisateur connecté comme créateur
@@ -76,6 +81,8 @@ class TrainingListSerializer(serializers.ModelSerializer):
             'max_participants', 'current_participants', 'main_image',
             'created_at'
         ]
+
+
 
 
 

@@ -3,7 +3,7 @@
 
 // ⚠️ FORCER L'UTILISATION DE L'API DE PRODUCTION
 // Pour revenir en mode local, mettre FORCE_PRODUCTION_API à false
-const FORCE_PRODUCTION_API = true;
+const FORCE_PRODUCTION_API = false;
 
 // Fonction pour déterminer l'URL de l'API selon l'environnement
 export const getApiUrl = () => {

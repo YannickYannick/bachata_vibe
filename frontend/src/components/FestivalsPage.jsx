@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 const FestivalsPage = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, token } = useAuth();
   const navigate = useNavigate();
   const [festivals, setFestivals] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +87,7 @@ const FestivalsPage = () => {
     if (!festivalToDelete) return;
     
     try {
-      await ApiService.deleteFestival(festivalToDelete.id, localStorage.getItem('token'));
+      await ApiService.deleteFestival(festivalToDelete.id, token);
       
       // Supprimer le festival de la liste locale
       setFestivals(festivals.filter(f => f.id !== festivalToDelete.id));

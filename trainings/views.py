@@ -23,7 +23,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
     ordering = ['-start_date']
     
     def get_queryset(self):
-        queryset = Training.objects.filter(status='active')
+        queryset = Training.objects.filter(status='approved')
         
         # Filtrage par difficulté
         difficulty = self.request.query_params.get('difficulty', None)
@@ -52,7 +52,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
         """Récupère les formations à venir"""
         upcoming_trainings = self.get_queryset().filter(
             start_date__gt=timezone.now(),
-            status='active'
+            status='approved'
         ).order_by('start_date')[:10]
         
         serializer = self.get_serializer(upcoming_trainings, many=True)
@@ -62,7 +62,7 @@ class TrainingViewSet(viewsets.ModelViewSet):
     def featured(self, request):
         """Récupère les formations mises en avant"""
         featured_trainings = self.get_queryset().filter(
-            status='active'
+            status='approved'
         ).order_by('-created_at')[:6]
         
         serializer = self.get_serializer(featured_trainings, many=True)

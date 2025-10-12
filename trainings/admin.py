@@ -17,25 +17,25 @@ class TrainingAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Informations de base', {
-            'fields': ('title', 'description', 'short_description', 'training_type', 'difficulty', 'status')
+            'fields': ('title', 'slug', 'description', 'short_description', 'training_type', 'difficulty', 'status')
         }),
         ('Localisation', {
-            'fields': ('location', 'address', 'city', 'postal_code', 'country')
+            'fields': ('location', 'address', 'city', 'postal_code')
         }),
         ('Dates et horaires', {
-            'fields': ('start_date', 'end_date', 'duration_minutes', 'schedule')
+            'fields': ('start_date', 'end_date', 'duration_minutes')
         }),
         ('Prix et capacité', {
-            'fields': ('price', 'currency', 'is_free', 'max_participants', 'current_participants')
+            'fields': ('price', 'currency', 'is_free', 'max_participants', 'min_participants', 'current_participants')
         }),
-        ('Instructeur', {
+        ('Créateur et approbation', {
             'fields': ('creator', 'approved_by', 'approved_at')
         }),
         ('Médias', {
-            'fields': ('main_image', 'gallery', 'video_url')
+            'fields': ('main_image', 'gallery')
         }),
         ('Contenu', {
-            'fields': ('curriculum', 'prerequisites', 'materials_needed', 'objectives', 'tags')
+            'fields': ('content', 'objectives', 'prerequisites', 'materials_needed', 'tags')
         }),
         ('Métadonnées', {
             'fields': ('created_at', 'updated_at'),

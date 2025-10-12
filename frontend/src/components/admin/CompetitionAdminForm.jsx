@@ -9,12 +9,13 @@ import {
   Calendar, 
   MapPin, 
   Users, 
-  Euro,
+  Trophy,
   FileText,
-  Image
+  Image,
+  Award
 } from 'lucide-react';
 
-const FestivalAdminForm = () => {
+const CompetitionAdminForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditing = Boolean(id);
@@ -29,19 +30,18 @@ const FestivalAdminForm = () => {
     start_date: '',
     end_date: '',
     registration_deadline: '',
-    duration_days: 1,
-    max_participants: 100,
-    base_price: 0,
-    currency: 'EUR',
-    is_free: false,
-    status: 'pending',
-    main_image: null,
+    category: 'couple',
+    status: 'draft',
     location: '',
     address: '',
     postal_code: '',
-    highlights: '',
-    schedule: '',
-    requirements: '',
+    max_participants: 50,
+    entry_fee: 0,
+    currency: 'EUR',
+    prize_pool: 0,
+    rules: '',
+    judging_criteria: '',
+    main_image: null,
     website_url: '',
     instagram: '',
     facebook: ''
@@ -52,40 +52,43 @@ const FestivalAdminForm = () => {
 
   useEffect(() => {
     if (isEditing) {
-      fetchFestival();
+      fetchCompetition();
     }
   }, [id]);
 
-  const fetchFestival = async () => {
+  const fetchCompetition = async () => {
     try {
       setLoading(true);
-      const festival = await ApiService.getFestival(id);
+      const competition = await ApiService.getCompetition(id);
       setFormData({
         ...formData,
-        title: festival.title || '',
-        short_description: festival.short_description || '',
-        description: festival.description || '',
-        city: festival.city || '',
-        country: festival.country || 'France',
-        location: festival.location || '',
-        address: festival.address || '',
-        postal_code: festival.postal_code || '',
-        start_date: festival.start_date ? festival.start_date.split('T')[0] : '',
-        end_date: festival.end_date ? festival.end_date.split('T')[0] : '',
-        registration_deadline: festival.registration_deadline ? festival.registration_deadline.split('T')[0] : '',
-        duration_days: festival.duration_days || 1,
-        max_participants: festival.max_participants || 100,
-        base_price: festival.base_price ?? 0,
-        currency: festival.currency || 'EUR',
-        is_free: Boolean(festival.is_free),
-        status: festival.status || 'pending',
-        website_url: festival.website_url || '',
-        instagram: festival.instagram || '',
-        main_image: festival.main_image || '',
+        title: competition.title || '',
+        short_description: competition.short_description || '',
+        description: competition.description || '',
+        city: competition.city || '',
+        country: competition.country || 'France',
+        location: competition.location || '',
+        address: competition.address || '',
+        postal_code: competition.postal_code || '',
+        start_date: competition.start_date ? competition.start_date.split('T')[0] : '',
+        end_date: competition.end_date ? competition.end_date.split('T')[0] : '',
+        registration_deadline: competition.registration_deadline ? competition.registration_deadline.split('T')[0] : '',
+        category: competition.category || 'couple',
+        status: competition.status || 'draft',
+        max_participants: competition.max_participants || 50,
+        entry_fee: competition.entry_fee || 0,
+        currency: competition.currency || 'EUR',
+        prize_pool: competition.prize_pool || 0,
+        rules: competition.rules || '',
+        judging_criteria: competition.judging_criteria || '',
+        website_url: competition.website_url || '',
+        instagram: competition.instagram || '',
+        facebook: competition.facebook || '',
+        main_image: competition.main_image || '',
       });
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
-      setError('Erreur lors du chargement du festival');
+      setError('Erreur lors du chargement de la compétition');
     } finally {
       setLoading(false);
     }
@@ -115,19 +118,30 @@ const FestivalAdminForm = () => {
     setError(null);
 
     if (!token) {
-      setError('Vous devez être connecté pour sauvegarder un festival');
+      setError('Vous devez être connecté pour sauvegarder une compétition');
       setLoading(false);
       return;
     }
 
     try {
+      // Validation du JSON pour judging_criteria
+      if (formData.judging_criteria && formData.judging_criteria.trim()) {
+        try {
+          JSON.parse(formData.judging_criteria);
+        } catch (e) {
+          setError('Le champ "Critères de jugement" doit contenir un JSON valide. Exemple: {"technique": 40, "style": 30, "musicality": 30}');
+          setLoading(false);
+          return;
+        }
+      }
+
       const toIsoDateTime = (dateStr, endOfDay = false) => {
         if (!dateStr) return '';
         const time = endOfDay ? '23:59:59' : '00:00:00';
         return `${dateStr}T${time}Z`;
       };
 
-      const festivalData = {
+      const competitionData = {
         title: formData.title,
         short_description: formData.short_description,
         description: formData.description,
@@ -139,24 +153,28 @@ const FestivalAdminForm = () => {
         start_date: toIsoDateTime(formData.start_date, false),
         end_date: toIsoDateTime(formData.end_date, true),
         registration_deadline: toIsoDateTime(formData.registration_deadline, false),
-        max_participants: Number(formData.max_participants),
-        base_price: Number(formData.base_price),
-        currency: formData.currency,
-        is_free: Boolean(formData.is_free),
+        category: formData.category,
         status: formData.status,
+        max_participants: Number(formData.max_participants),
+        entry_fee: Number(formData.entry_fee),
+        currency: formData.currency,
+        prize_pool: Number(formData.prize_pool),
+        rules: formData.rules,
+        judging_criteria: formData.judging_criteria && formData.judging_criteria.trim() ? formData.judging_criteria : '',
         website_url: formData.website_url,
         instagram: formData.instagram,
+        facebook: formData.facebook,
       };
 
       // Ne pas inclure main_image si c'est vide ou null
       if (formData.main_image && formData.main_image !== '') {
-        festivalData.main_image = formData.main_image;
+        competitionData.main_image = formData.main_image;
       }
       
-      await ApiService.saveFestival(festivalData, token, isEditing ? id : null);
+      await ApiService.saveCompetition(competitionData, token, isEditing ? id : null);
 
-      // Rediriger vers la liste des festivals
-      navigate('/festivals');
+      // Rediriger vers la liste des compétitions
+      navigate('/competitions');
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
       
@@ -175,20 +193,10 @@ const FestivalAdminForm = () => {
         }
         setError(errorMessages.join('\n'));
       } else {
-        setError(error.message || 'Erreur lors de la sauvegarde du festival');
+        setError(error.message || 'Erreur lors de la sauvegarde de la compétition');
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const calculateDuration = () => {
-    if (formData.start_date && formData.end_date) {
-      const start = new Date(formData.start_date);
-      const end = new Date(formData.end_date);
-      const diffTime = Math.abs(end - start);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      setFormData(prev => ({ ...prev, duration_days: diffDays }));
     }
   };
 
@@ -197,7 +205,7 @@ const FestivalAdminForm = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement du festival...</p>
+          <p className="text-gray-600">Chargement de la compétition...</p>
         </div>
       </div>
     );
@@ -210,10 +218,10 @@ const FestivalAdminForm = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900">
-              {isEditing ? 'Modifier le festival' : 'Ajouter un festival'}
+              {isEditing ? 'Modifier la compétition' : 'Ajouter une compétition'}
             </h1>
             <button
-              onClick={() => navigate('/festivals')}
+              onClick={() => navigate('/competitions')}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="w-6 h-6" />
@@ -259,6 +267,26 @@ const FestivalAdminForm = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                Catégorie
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              >
+                <option value="solo">Solo</option>
+                <option value="couple">Couple</option>
+                <option value="group">Groupe</option>
+                <option value="professional">Professionnel</option>
+                <option value="amateur">Amateur</option>
+                <option value="youth">Jeunesse</option>
+                <option value="senior">Senior</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Statut
               </label>
               <select
@@ -267,11 +295,12 @@ const FestivalAdminForm = () => {
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                <option value="pending">En attente</option>
-                <option value="approved">Approuvé</option>
+                <option value="draft">Brouillon</option>
+                <option value="registration_open">Inscriptions ouvertes</option>
+                <option value="registration_closed">Inscriptions fermées</option>
                 <option value="ongoing">En cours</option>
-                <option value="completed">Terminé</option>
-                <option value="cancelled">Annulé</option>
+                <option value="completed">Terminée</option>
+                <option value="cancelled">Annulée</option>
               </select>
             </div>
 
@@ -333,25 +362,24 @@ const FestivalAdminForm = () => {
                 name="end_date"
                 value={formData.end_date}
                 onChange={handleInputChange}
-                onBlur={calculateDuration}
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date limite d'inscription *
-            </label>
-            <input
-              type="date"
-              name="registration_deadline"
-              value={formData.registration_deadline}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Date limite d'inscription *
+              </label>
+              <input
+                type="date"
+                name="registration_deadline"
+                value={formData.registration_deadline}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -380,25 +408,25 @@ const FestivalAdminForm = () => {
               />
             </div>
 
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lieu (nom de la salle / lieu principal) *
-            </label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleInputChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            />
-          </div>
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Lieu (nom de la salle / lieu principal) *
+              </label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
 
-            {/* Capacité et prix */}
+            {/* Participants et prix */}
             <div className="lg:col-span-2">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Users className="w-5 h-5 mr-2" />
-                Capacité et prix
+                Participants et prix
               </h3>
             </div>
 
@@ -418,39 +446,23 @@ const FestivalAdminForm = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Durée (jours)
-              </label>
-              <input
-                type="number"
-                name="duration_days"
-                value={formData.duration_days}
-                onChange={handleInputChange}
-                min="1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prix de base
+                Frais d'inscription
               </label>
               <div className="flex items-center space-x-2">
                 <input
                   type="number"
-                  name="base_price"
-                  value={formData.base_price}
+                  name="entry_fee"
+                  value={formData.entry_fee}
                   onChange={handleInputChange}
                   min="0"
                   step="0.01"
-                  disabled={formData.is_free}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 />
                 <select
                   name="currency"
                   value={formData.currency}
                   onChange={handleInputChange}
-                  disabled={formData.is_free}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:bg-gray-100"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 >
                   <option value="EUR">EUR</option>
                   <option value="USD">USD</option>
@@ -459,17 +471,19 @@ const FestivalAdminForm = () => {
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="is_free"
-                checked={formData.is_free}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-              />
-              <label className="ml-2 block text-sm text-gray-700">
-                Festival gratuit
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Prix total
               </label>
+              <input
+                type="number"
+                name="prize_pool"
+                value={formData.prize_pool}
+                onChange={handleInputChange}
+                min="0"
+                step="0.01"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
             </div>
 
             {/* Image */}
@@ -485,6 +499,45 @@ const FestivalAdminForm = () => {
                 accept="image/*"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
+            </div>
+
+            {/* Règlement */}
+            <div className="lg:col-span-2">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Award className="w-5 h-5 mr-2" />
+                Règlement et critères
+              </h3>
+            </div>
+
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Règlement
+              </label>
+              <textarea
+                name="rules"
+                value={formData.rules}
+                onChange={handleInputChange}
+                rows={4}
+                placeholder="Décrivez les règles de la compétition..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Critères de jugement (JSON)
+              </label>
+              <textarea
+                name="judging_criteria"
+                value={formData.judging_criteria}
+                onChange={handleInputChange}
+                rows={6}
+                placeholder='Format JSON attendu, ex: {"technique": 40, "style": 30, "musicality": 30}'
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Entrez un JSON valide. Exemple: {"{"}"technique": 40, "style": 30, "musicality": 30{"}"}
+              </p>
             </div>
 
             {/* Réseaux sociaux */}
@@ -535,63 +588,13 @@ const FestivalAdminForm = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
-
-            {/* Informations supplémentaires */}
-            <div className="lg:col-span-2">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <FileText className="w-5 h-5 mr-2" />
-                Informations supplémentaires
-              </h3>
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Points forts
-              </label>
-              <textarea
-                name="highlights"
-                value={formData.highlights}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder="Listez les points forts du festival..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Programme
-              </label>
-              <textarea
-                name="schedule"
-                value={formData.schedule}
-                onChange={handleInputChange}
-                rows={4}
-                placeholder="Décrivez le programme du festival..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Prérequis
-              </label>
-              <textarea
-                name="requirements"
-                value={formData.requirements}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder="Prérequis pour participer au festival..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
           </div>
 
           {/* Boutons d'action */}
           <div className="flex justify-end space-x-4 mt-8 pt-6 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => navigate('/festivals')}
+              onClick={() => navigate('/competitions')}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Annuler
@@ -609,7 +612,7 @@ const FestivalAdminForm = () => {
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  {isEditing ? 'Mettre à jour' : 'Créer le festival'}
+                  {isEditing ? 'Mettre à jour' : 'Créer la compétition'}
                 </>
               )}
             </button>
@@ -620,5 +623,4 @@ const FestivalAdminForm = () => {
   );
 };
 
-export default FestivalAdminForm;
- 
+export default CompetitionAdminForm;

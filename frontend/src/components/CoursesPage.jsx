@@ -1,18 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import ApiService from '../services/api';
 
 
 const CoursesPage = () => {
+  const { user, token } = useAuth();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCourses();
-  }, []);
+    // Vérifier si l'utilisateur est admin
+    if (user && user.user_type === 'admin') {
+      setIsAdmin(true);
+    }
+  }, [user]);
 
   const fetchCourses = async () => {
     try {
@@ -31,6 +39,28 @@ const CoursesPage = () => {
 
   const handleViewDetails = (courseId) => {
     navigate(`/courses/${courseId}`);
+  };
+
+  // Fonctions d'administration
+  const handleAddCourse = () => {
+    navigate('/admin/courses/add');
+  };
+
+  const handleEditCourse = (courseId) => {
+    navigate(`/admin/courses/edit/${courseId}`);
+  };
+
+  const handleDeleteCourse = async (courseId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce cours ?')) {
+      try {
+        await ApiService.deleteCourse(courseId, token);
+        setCourses(courses.filter(c => c.id !== courseId));
+        toast.success('Cours supprimé avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast.error('Erreur lors de la suppression du cours');
+      }
+    }
   };
 
   const formatDate = (dateString) => {
@@ -125,6 +155,17 @@ const CoursesPage = () => {
             Découvrez notre sélection de cours pour tous les niveaux, 
             de débutant à professionnel
           </p>
+          {isAdmin && (
+            <div className="mt-6">
+              <button
+                onClick={handleAddCourse}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center mx-auto"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Ajouter un cours
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Grille des cours */}
@@ -199,6 +240,34 @@ const CoursesPage = () => {
                     Voir détails
                   </button>
                 </div>
+
+                {/* Boutons admin */}
+                {isAdmin && (
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditCourse(course.id);
+                      }}
+                      className="flex-1 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      title="Modifier"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Modifier
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCourse(course.id);
+                      }}
+                      className="flex-1 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Supprimer
+                    </button>
+                  </div>
+                )}
 
                 {/* Statut du cours */}
                 {course.is_full && (

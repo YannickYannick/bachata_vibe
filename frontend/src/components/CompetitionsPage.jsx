@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import ApiService from '../services/api';
 
 const CompetitionsPage = () => {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
   const [competitions, setCompetitions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchCompetitions();
-  }, []);
+    // Vérifier si l'utilisateur est admin
+    if (user && user.user_type === 'admin') {
+      setIsAdmin(true);
+    }
+  }, [user]);
 
   const fetchCompetitions = async () => {
     try {
@@ -57,6 +67,28 @@ const CompetitionsPage = () => {
       'amateur': 'Amateur'
     };
     return labels[category] || category;
+  };
+
+  // Fonctions d'administration
+  const handleAddCompetition = () => {
+    navigate('/admin/competitions/add');
+  };
+
+  const handleEditCompetition = (competitionId) => {
+    navigate(`/admin/competitions/edit/${competitionId}`);
+  };
+
+  const handleDeleteCompetition = async (competitionId) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette compétition ?')) {
+      try {
+        await ApiService.deleteCompetition(competitionId, token);
+        setCompetitions(competitions.filter(c => c.id !== competitionId));
+        toast.success('Compétition supprimée avec succès');
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error);
+        toast.error('Erreur lors de la suppression de la compétition');
+      }
+    }
   };
 
   const getStatusColor = (status) => {
@@ -135,6 +167,17 @@ const CompetitionsPage = () => {
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Participez aux meilleures compétitions et démontrez votre talent
           </p>
+          {isAdmin && (
+            <div className="mt-6">
+              <button
+                onClick={handleAddCompetition}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center mx-auto"
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Ajouter une compétition
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Grille des compétitions */}
@@ -211,6 +254,34 @@ const CompetitionsPage = () => {
                 >
                   {competition.status === 'registration_open' ? 'S\'inscrire' : 'Inscriptions fermées'}
                 </button>
+
+                {/* Boutons admin */}
+                {isAdmin && (
+                  <div className="flex gap-2 mt-4">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditCompetition(competition.id);
+                      }}
+                      className="flex-1 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+                      title="Modifier"
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Modifier
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCompetition(competition.id);
+                      }}
+                      className="flex-1 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Supprimer
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
