@@ -1,0 +1,137 @@
+/* Styles pour le widget de catégories hiérarchiques MPTT */
+.hierarchical-category-widget {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    margin: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.hierarchical-category-widget .category-selector {
+    margin-bottom: 15px;
+}
+
+.hierarchical-category-widget label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+}
+
+.hierarchical-category-widget .hierarchical-select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.hierarchical-category-widget .hierarchical-select:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+    transform: translateY(-1px);
+}
+
+.hierarchical-category-widget .hierarchical-select:hover {
+    border-color: #5a9fd4;
+}
+
+.hierarchical-category-widget .hierarchical-select option {
+    padding: 8px 12px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+/* Styles pour les options avec indentation */
+.hierarchical-category-widget .hierarchical-select option[value=""] {
+    font-style: italic;
+    color: #6c757d;
+}
+
+.hierarchical-category-widget .selection-display {
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+    border: 1px solid #b8daff;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    min-height: 25px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.hierarchical-category-widget .selection-display:hover {
+    background: linear-gradient(135deg, #d1ecf1 0%, #e2f3f5 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.hierarchical-category-widget .selection-display strong {
+    color: #007cba;
+    font-weight: 600;
+}
+
+.hierarchical-category-widget .selection-display em {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Animation pour les changements */
+.hierarchical-category-widget .category-selector {
+    transition: opacity 0.3s ease;
+}
+
+.hierarchical-category-widget .category-selector.updating {
+    opacity: 0.6;
+}
+
+/* Indicateur de chargement */
+.hierarchical-category-widget .selection-display::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #007cba;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    opacity: 0;
+}
+
+.hierarchical-category-widget .selection-display.loading::before {
+    opacity: 1;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hierarchical-category-widget {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .hierarchical-category-widget .hierarchical-select {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+    
+    .hierarchical-category-widget .selection-display {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+}

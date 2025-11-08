@@ -5,8 +5,11 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
 from django.db import models
-from .models import Article, TheoryCourse, TheoryLesson
-from .serializers import ArticleSerializer, TheoryCourseSerializer, TheoryLessonSerializer
+from .models import Article, TheoryCourse, TheoryLesson, TheoryCategory
+from .serializers import (
+    ArticleSerializer, TheoryCourseSerializer, TheoryLessonSerializer,
+    TheoryCategorySerializer, TheoryCategoryListSerializer
+)
 
 class ArticleViewSet(viewsets.ModelViewSet):
     """
@@ -120,3 +123,66 @@ class TheoryLessonViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(course_id=course)
         
         return queryset
+
+class TheoryCategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet pour les catégories de théorie avec support hiérarchique
+    """
+    queryset = TheoryCategory.objects.all()
+    serializer_class = TheoryCategorySerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['parent']
+    search_fields = ['name', 'description']
+    ordering_fields = ['order', 'name']
+    ordering = ['order', 'name']
+    
+    def get_serializer_class(self):
+        """Utilise un sérialiseur différent selon l'action"""
+        if self.action == 'list':
+            return TheoryCategoryListSerializer
+        return TheoryCategorySerializer
+    
+    def get_queryset(self):
+        queryset = TheoryCategory.objects.all()
+        
+        # Filtrage par parent (pour récupérer les catégories racines ou les sous-catégories)
+        parent = self.request.query_params.get('parent', None)
+        if parent == 'null' or parent == '':
+            # Récupérer seulement les catégories racines
+            queryset = queryset.filter(parent__isnull=True)
+        elif parent:
+            # Récupérer les sous-catégories d'une catégorie spécifique
+            queryset = queryset.filter(parent_id=parent)
+        
+        return queryset
+    
+    @action(detail=False, methods=['get'])
+    def tree(self, request):
+        """Récupère l'arbre complet des catégories"""
+        root_categories = TheoryCategory.objects.filter(parent__isnull=True)
+        serializer = self.get_serializer(root_categories, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def roots(self, request):
+        """Récupère seulement les catégories racines"""
+        root_categories = TheoryCategory.objects.filter(parent__isnull=True)
+        serializer = TheoryCategoryListSerializer(root_categories, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def descendants(self, request, pk=None):
+        """Récupère tous les descendants d'une catégorie"""
+        category = self.get_object()
+        descendants = category.get_descendants()
+        serializer = TheoryCategoryListSerializer(descendants, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def ancestors(self, request, pk=None):
+        """Récupère tous les ancêtres d'une catégorie"""
+        category = self.get_object()
+        ancestors = category.get_ancestors()
+        serializer = TheoryCategoryListSerializer(ancestors, many=True)
+        return Response(serializer.data)

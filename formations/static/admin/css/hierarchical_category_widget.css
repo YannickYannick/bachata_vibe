@@ -1,0 +1,233 @@
+/* Widget de sélection hiérarchique multiniveau pour les catégories de formation */
+/* Solution CSS pur - Fonctionne dans Django Admin */
+
+/* Force la largeur en ignorant toutes les contraintes parentes */
+.aligned .form-row.field-category,
+.wide .form-row.field-category {
+    display: block;
+    width: 100%;
+}
+
+.aligned .form-row.field-category > div,
+.wide .form-row.field-category > div {
+    width: 100%;
+    max-width: 100%;
+}
+
+.hierarchical-category-widget {
+    font-family: Arial, sans-serif;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    width: min(100%, 1180px);
+    max-width: 100%;
+    min-width: 320px;
+    box-sizing: border-box;
+}
+
+.hierarchical-category-widget .widget-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 14px;
+    width: 100% !important;
+    text-align: center;
+    padding: 10px;
+    background-color: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+.multilevel-dropdown-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+    display: block;
+    width: 100%;
+    max-height: 420px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.multilevel-dropdown-menu .parent {
+    display: block;
+    position: relative;
+    line-height: 40px;
+    background-color: #ffc72c;
+    border-bottom: #CCC 1px solid;
+    box-sizing: border-box;
+    clear: both;
+}
+
+.multilevel-dropdown-menu .parent > a {
+    padding: 12px 24px;
+    color: #5d3200;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* SOLUTION CLÉE : Zone invisible qui étend le parent jusqu'au child - Limite étroite */
+.multilevel-dropdown-menu .parent::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 10px; /* Zone étroite pour faciliter le passage au child */
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1; /* Reste derrière le child */
+}
+
+/* Le child est positionné au-dessus du ::after */
+.multilevel-dropdown-menu .child {
+    display: none;
+    position: absolute;
+    top: -1px;
+    left: 100%;
+    min-width: 250px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1001;
+    margin-left: -1px;
+    list-style: none;
+    padding: 0;
+    pointer-events: auto; /* Le child peut recevoir les événements */
+}
+
+/* Le JavaScript gère maintenant l'affichage des sous-menus */
+/* On garde juste les styles visuels */
+
+.multilevel-dropdown-menu .child li {
+    background-color: #E4EFF7;
+    border-bottom: #b5b5b5 1px solid;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.multilevel-dropdown-menu .child li:last-child {
+    border-bottom: none;
+}
+
+.multilevel-dropdown-menu .child li a {
+    color: #000000;
+    padding: 12px 20px;
+    display: block;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    flex: 1;
+}
+
+.multilevel-dropdown-menu .child li:hover {
+    background-color: #95B4CA;
+}
+
+.multilevel-dropdown-menu .parent:hover {
+    background-color: #F0F0F0;
+}
+
+.multilevel-dropdown-menu .expand {
+    font-size: 12px;
+    float: right;
+    margin-right: 5px;
+    color: #666;
+}
+
+/* Styles pour les catégories sélectionnées */
+.multilevel-dropdown-menu .selected {
+    background-color: #4CAF50 !important;
+    color: white !important;
+}
+
+.multilevel-dropdown-menu .selected a {
+    color: white !important;
+}
+
+/* Styles pour les catégories avec articles */
+.multilevel-dropdown-menu .has-articles {
+    font-weight: bold;
+}
+
+.multilevel-dropdown-menu .has-articles::after {
+    content: " 📄";
+    font-size: 12px;
+    margin-left: 5px;
+}
+
+/* Styles pour les catégories inactives */
+.multilevel-dropdown-menu .inactive {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .multilevel-dropdown-menu .child {
+        position: static;
+        left: auto;
+        top: auto;
+        box-shadow: none;
+        border: none;
+        border-top: 1px solid #ccc;
+    }
+    
+    .multilevel-dropdown-menu .parent:hover > ul {
+        position: static;
+    }
+}
+
+/* Styles pour l'affichage de la sélection actuelle */
+.selection-display {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.selection-display .selected-path {
+    color: #0c5460;
+    font-weight: bold;
+}
+
+.selection-display .no-selection {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Styles pour les icônes de catégories */
+.category-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Styles pour le compteur d'articles */
+.article-count {
+    font-size: 11px;
+    color: #666;
+    margin-left: 5px;
+    background-color: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 10px;
+}

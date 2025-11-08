@@ -6,6 +6,7 @@ router = DefaultRouter()
 router.register(r'articles', views.ArticleViewSet)
 router.register(r'courses', views.TheoryCourseViewSet)
 router.register(r'lessons', views.TheoryLessonViewSet)
+router.register(r'categories', views.TheoryCategoryViewSet)
 
 app_name = 'theory'
 

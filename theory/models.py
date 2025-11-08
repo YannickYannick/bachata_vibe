@@ -14,13 +14,66 @@ class TheoryCategory(models.Model):
     icon = models.CharField(max_length=50, blank=True, verbose_name=_('Icône'))
     order = models.PositiveIntegerField(default=0, verbose_name=_('Ordre d\'affichage'))
     
+    # Relation auto-référentielle pour les sous-catégories
+    parent = models.ForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='subcategories',
+        verbose_name=_('Catégorie parent')
+    )
+    
     class Meta:
         verbose_name = _('Catégorie de théorie')
         verbose_name_plural = _('Catégories de théorie')
         ordering = ['order', 'name']
     
     def __str__(self):
+        if self.parent:
+            return f"{self.parent.name} > {self.name}"
         return self.name
+    
+    def get_ancestors(self):
+        """Retourne tous les ancêtres de cette catégorie"""
+        ancestors = []
+        current = self.parent
+        while current:
+            ancestors.append(current)
+            current = current.parent
+        return ancestors
+    
+    def get_descendants(self):
+        """Retourne tous les descendants de cette catégorie"""
+        descendants = []
+        for subcategory in self.subcategories.all():
+            descendants.append(subcategory)
+            descendants.extend(subcategory.get_descendants())
+        return descendants
+    
+    def get_full_path(self):
+        """Retourne le chemin complet de la catégorie (ex: Histoire > Époque moderne > XXe siècle)"""
+        path = [self.name]
+        for ancestor in self.get_ancestors():
+            path.insert(0, ancestor.name)
+        return ' > '.join(path)
+    
+    def is_root(self):
+        """Vérifie si cette catégorie est une catégorie racine"""
+        return self.parent is None
+    
+    def is_leaf(self):
+        """Vérifie si cette catégorie est une feuille (n'a pas de sous-catégories)"""
+        return not self.subcategories.exists()
+    
+    def get_level(self):
+        """Retourne le niveau de profondeur de la catégorie (0 pour les racines)"""
+        level = 0
+        current = self.parent
+        while current:
+            level += 1
+            current = current.parent
+        return level
 
 class TheoryCourse(models.Model):
     """Cours de théorie en ligne"""

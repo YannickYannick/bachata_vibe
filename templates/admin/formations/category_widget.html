@@ -1,0 +1,57 @@
+{% load static %}
+
+<div class="hierarchical-category-widget" data-widget-name="{{ widget_name }}">
+    <div class="category-row">
+        <div class="category-column">
+            <label for="{{ widget_name }}_parent">
+                📁 Catégorie principale :
+            </label>
+            <select id="{{ widget_name }}_parent" name="{{ widget_name }}_parent">
+                <option value="">Sélectionnez une catégorie principale...</option>
+                {% for category in parent_categories %}
+                    <option value="{{ category.id }}" 
+                            {% if selected_parent == category.id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="category-column">
+            <label for="{{ widget_name }}_child">
+                └── Sous-catégorie :
+            </label>
+            <select id="{{ widget_name }}_child" name="{{ widget_name }}_child">
+                <option value="">Aucune sous-catégorie</option>
+                {% for parent_id, children in child_categories.items %}
+                    {% for child in children %}
+                        <option value="{{ child.id }}" 
+                                data-parent="{{ parent_id }}"
+                                {% if selected_category.id == child.id %}selected{% endif %}>
+                            {{ child.name }}
+                        </option>
+                    {% endfor %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <!-- Champ caché pour la valeur finale -->
+    <input type="hidden" id="{{ widget_name }}" name="{{ widget_name }}" value="{{ widget_value }}">
+    
+    <!-- Affichage de la sélection actuelle -->
+    <div id="{{ widget_name }}_display" class="selection-display">
+        {% if selected_category %}
+            {% if selected_category.parent %}
+                <strong>📁 {{ selected_category.parent.name }}</strong> → <em>{{ selected_category.name }}</em>
+            {% else %}
+                <strong>📁 {{ selected_category.name }}</strong>
+            {% endif %}
+        {% else %}
+            <em style="color: #6c757d;">Aucune catégorie sélectionnée</em>
+        {% endif %}
+    </div>
+</div>
+
+
+

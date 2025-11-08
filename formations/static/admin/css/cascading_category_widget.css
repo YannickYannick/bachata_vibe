@@ -1,0 +1,201 @@
+/* Styles pour le widget de catégories en cascade MPTT */
+.cascading-category-widget {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    margin: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.cascading-dropdowns {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.dropdown-level {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.dropdown-level.hidden {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+.dropdown-level label {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdown-level label::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background-color: #007cba;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.dropdown-level.active label::before {
+    background-color: #28a745;
+    transform: scale(1.2);
+}
+
+.category-dropdown {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    background-color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.category-dropdown:focus {
+    outline: none;
+    border-color: #007cba;
+    box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+    transform: translateY(-1px);
+}
+
+.category-dropdown:hover {
+    border-color: #5a9fd4;
+}
+
+.category-dropdown:disabled {
+    background-color: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.selection-display {
+    margin-top: 20px;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #e8f4f8 0%, #f0f8ff 100%);
+    border: 1px solid #b8daff;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    min-height: 25px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.selection-display:hover {
+    background: linear-gradient(135deg, #d1ecf1 0%, #e2f3f5 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.selection-display strong {
+    color: #007cba;
+    font-weight: 600;
+}
+
+.selection-display em {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Animation pour les changements */
+.dropdown-level.updating {
+    opacity: 0.6;
+    transform: scale(0.98);
+}
+
+/* Indicateur de chargement */
+.selection-display::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    border: 2px solid #007cba;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    opacity: 0;
+}
+
+.selection-display.loading::before {
+    opacity: 1;
+}
+
+@keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Styles pour les niveaux de hiérarchie */
+.dropdown-level[data-level="0"] label {
+    color: #2c3e50;
+}
+
+.dropdown-level[data-level="1"] label {
+    color: #495057;
+    margin-left: 20px;
+}
+
+.dropdown-level[data-level="2"] label {
+    color: #6c757d;
+    margin-left: 40px;
+}
+
+.dropdown-level[data-level="3"] label {
+    color: #868e96;
+    margin-left: 60px;
+}
+
+.dropdown-level[data-level="4"] label {
+    color: #adb5bd;
+    margin-left: 80px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .cascading-category-widget {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    .cascading-dropdowns {
+        gap: 10px;
+    }
+    
+    .dropdown-level label {
+        font-size: 13px;
+    }
+    
+    .category-dropdown {
+        font-size: 13px;
+        padding: 10px 12px;
+    }
+    
+    .selection-display {
+        padding: 12px 15px;
+        font-size: 13px;
+    }
+    
+    /* Réduire les marges sur mobile */
+    .dropdown-level[data-level="1"] label { margin-left: 10px; }
+    .dropdown-level[data-level="2"] label { margin-left: 20px; }
+    .dropdown-level[data-level="3"] label { margin-left: 30px; }
+    .dropdown-level[data-level="4"] label { margin-left: 40px; }
+}
+
+
+

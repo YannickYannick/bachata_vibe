@@ -2,11 +2,141 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from django import forms
 from .models import (
     FormationCategory, FormationArticle, FormationFavorite, 
     FormationComment, FormationProgress, FormationMedia, FormationSearchLog
 )
 from django.utils import timezone
+
+
+class HierarchicalCategoryWidget(forms.Widget):
+    """Widget de sélection hiérarchique multiniveau pour les catégories MPTT"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.attrs.update({
+            'class': 'hierarchical-category-widget'
+        })
+    
+    class Media:
+        css = {
+            'all': ('admin/css/hierarchical_category_widget.css',)
+        }
+        js = ('admin/js/hierarchical_category_widget.js',)
+    
+    def render(self, name, value, attrs=None, renderer=None):
+        """Rendu du widget de sélection hiérarchique multiniveau"""
+        from .models import FormationCategory
+        from django.utils.html import format_html
+        import json
+        
+        # Construire les attrs finaux
+        if attrs is None:
+            attrs = {}
+        attrs = self.build_attrs(attrs, extra_attrs={'type': 'hidden'})
+        
+        # Récupérer toutes les catégories actives avec MPTT
+        all_categories = FormationCategory.objects.filter(is_active=True)
+        
+        # Si aucune catégorie, créer des catégories de test
+        if not all_categories.exists():
+            # Créer des catégories de test
+            FormationCategory.objects.create(
+                name="Niveau Débutant",
+                slug="niveau-debutant",
+                description="Formations pour débutants",
+                is_active=True
+            )
+            FormationCategory.objects.create(
+                name="Niveau Intermédiaire", 
+                slug="niveau-intermediaire",
+                description="Formations pour niveau intermédiaire",
+                is_active=True
+            )
+            FormationCategory.objects.create(
+                name="Niveau Avancé",
+                slug="niveau-avance", 
+                description="Formations pour niveau avancé",
+                is_active=True
+            )
+            # Recharger les catégories
+            all_categories = FormationCategory.objects.filter(is_active=True)
+        
+        # Construire la structure hiérarchique pour JavaScript
+        def build_category_tree(categories):
+            """Construire l'arbre des catégories pour JavaScript"""
+            def _find_parent_in_tree(tree, parent_id):
+                """Trouver un parent dans l'arbre"""
+                for category_id, category_data in tree.items():
+                    if category_id == parent_id:
+                        return category_data
+                    if category_data['children']:
+                        found = _find_parent_in_tree(category_data['children'], parent_id)
+                        if found:
+                            return found
+                return None
+            
+            tree = {}
+            for category in categories:
+                if category.parent_id is None:
+                    # Catégorie racine
+                    tree[category.id] = {
+                        'id': category.id,
+                        'name': category.name,
+                        'level': 0,
+                        'icon': category.icon or '📁',
+                        'is_active': category.is_active,
+                        'article_count': category.get_articles_count(),
+                        'children': {}
+                    }
+                else:
+                    # Trouver le parent dans l'arbre
+                    parent = _find_parent_in_tree(tree, category.parent_id)
+                    if parent:
+                        parent['children'][category.id] = {
+                            'id': category.id,
+                            'name': category.name,
+                            'level': parent['level'] + 1,
+                            'icon': category.icon or '📁',
+                            'is_active': category.is_active,
+                            'article_count': category.get_articles_count(),
+                            'children': {}
+                        }
+            return tree
+        
+        # Construire l'arbre des catégories
+        category_tree = build_category_tree(all_categories)
+        
+        # Construire les attributs pour le champ caché
+        input_attrs = attrs.copy()
+        input_attrs['name'] = name
+        input_attrs['value'] = str(value) if value else ''
+        input_attrs_str = ' '.join([f'{k}="{v}"' for k, v in input_attrs.items()])
+        
+        # Construire le HTML complet
+        html = format_html(
+            '''
+            <div class="hierarchical-category-widget" data-widget-name="{}" data-category-tree="{}">
+                <div class="widget-title">📁 Sélectionnez une catégorie :</div>
+                <input {}>
+                <div id="{}_display" class="selection-display">
+                    <div class="no-selection">Aucune catégorie sélectionnée</div>
+                </div>
+            </div>
+            ''',
+            name,  # data-widget-name
+            json.dumps(category_tree),  # data-category-tree
+            input_attrs_str,  # hidden field attributes
+            name  # display
+        )
+        
+        return html
+    
+    def value_from_datadict(self, data, files, name):
+        """Récupérer la valeur depuis les données du formulaire"""
+        # Le widget envoie la valeur directement via le champ caché
+        return data.get(name)
 
 
 @admin.register(FormationCategory)
@@ -19,9 +149,26 @@ class FormationCategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     ordering = ['order', 'name']
     
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Utilise le widget hiérarchique pour la sélection de catégorie parente"""
+        if db_field.name == "parent":
+            # Récupérer toutes les catégories actives
+            categories = FormationCategory.objects.filter(is_active=True).order_by('parent__name', 'name')
+            
+            # Créer le champ avec le widget hiérarchique
+            field = forms.ModelChoiceField(
+                queryset=categories,
+                empty_label="Aucune catégorie parente (catégorie racine)",
+                widget=HierarchicalCategoryWidget(),
+                required=False
+            )
+            return field
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
     fieldsets = (
         ('Informations de base', {
-            'fields': ('name', 'slug', 'description', 'parent', 'order', 'icon')
+            'fields': ('name', 'slug', 'description', 'parent', 'order', 'icon'),
+            'classes': ('wide',),
         }),
         ('Statut', {
             'fields': ('is_active',)
@@ -39,7 +186,7 @@ class FormationCategoryAdmin(admin.ModelAdmin):
 @admin.register(FormationArticle)
 class FormationArticleAdmin(admin.ModelAdmin):
     """Administration des articles de formation"""
-    list_display = ['title', 'author', 'category', 'level', 'status', 'views_count', 
+    list_display = ['title', 'author', 'category_hierarchy', 'level', 'status', 'views_count', 
                    'likes_count', 'comments_count', 'created_at', 'published_at']
     list_filter = ['status', 'level', 'category', 'author', 'created_at', 'published_at']
     search_fields = ['title', 'content', 'excerpt', 'author__username', 'category__name']
@@ -49,9 +196,19 @@ class FormationArticleAdmin(admin.ModelAdmin):
     date_hierarchy = 'created_at'
     
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Filtre les catégories pour n'afficher que les actives"""
+        """Filtre les catégories pour n'afficher que les actives avec hiérarchie"""
         if db_field.name == "category":
-            kwargs["queryset"] = FormationCategory.objects.filter(is_active=True)
+            # Récupérer toutes les catégories actives
+            categories = FormationCategory.objects.filter(is_active=True).order_by('parent__name', 'name')
+            
+            # Créer le champ avec le widget hiérarchique
+            field = forms.ModelChoiceField(
+                queryset=categories,
+                empty_label="Sélectionnez une catégorie...",
+                widget=HierarchicalCategoryWidget(),
+                required=True
+            )
+            return field
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     fieldsets = (
@@ -59,7 +216,8 @@ class FormationArticleAdmin(admin.ModelAdmin):
             'fields': ('title', 'slug', 'content', 'excerpt', 'featured_image')
         }),
         ('Métadonnées', {
-            'fields': ('author', 'category', 'level', 'status', 'reading_time')
+            'fields': ('author', 'category', 'level', 'status', 'reading_time'),
+            'classes': ('wide',),
         }),
         ('SEO', {
             'fields': ('meta_description',)
@@ -88,7 +246,23 @@ class FormationArticleAdmin(admin.ModelAdmin):
     
     def get_queryset(self, request):
         """Optimise la requête avec les relations"""
-        return super().get_queryset(request).select_related('author', 'category')
+        return super().get_queryset(request).select_related('author', 'category', 'category__parent')
+    
+    def category_hierarchy(self, obj):
+        """Affiche la hiérarchie des catégories"""
+        if obj.category.parent:
+            return format_html(
+                '<span style="font-family: monospace;">📁 {} → {}</span>',
+                obj.category.parent.name,
+                obj.category.name
+            )
+        else:
+            return format_html(
+                '<span style="font-family: monospace;">📁 {}</span>',
+                obj.category.name
+            )
+    category_hierarchy.short_description = 'Catégorie'
+    category_hierarchy.admin_order_field = 'category__name'
 
 
 @admin.register(FormationFavorite)

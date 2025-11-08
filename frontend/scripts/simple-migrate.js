@@ -49,3 +49,8 @@ console.log('3. Supprimez les variables response et les vérifications response.
 
 
 
+
+
+
+
+

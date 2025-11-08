@@ -5,25 +5,34 @@ from django.urls import reverse
 from django.core.validators import MinValueValidator, MaxValueValidator
 import uuid
 from django.utils import timezone
+from mptt.models import MPTTModel, TreeForeignKey
 
 
-class FormationCategory(models.Model):
+class FormationCategory(MPTTModel):
     """Catégorie de formation (ex: Niveau, Style, Technique)"""
     name = models.CharField(max_length=100, verbose_name="Nom")
     slug = models.SlugField(max_length=100, unique=True, verbose_name="Slug")
     description = models.TextField(blank=True, verbose_name="Description")
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, 
-                             related_name='children', verbose_name="Catégorie parente")
+    parent = TreeForeignKey(
+        'self',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='children',
+        verbose_name="Catégorie parente"
+    )
     order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
     icon = models.CharField(max_length=50, blank=True, verbose_name="Icône (classe CSS)")
     is_active = models.BooleanField(default=True, verbose_name="Active")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Date de création")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Date de modification")
 
+    class MPTTMeta:
+        order_insertion_by = ['name']
+
     class Meta:
         verbose_name = "Catégorie de formation"
         verbose_name_plural = "Catégories de formation"
-        ordering = ['order', 'name']
 
     def __str__(self):
         if self.parent:
